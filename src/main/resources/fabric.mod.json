@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "cotton-scripting",
+  "version": "$version",
+
+  "name": "Cotton Scripting",
+  "icon": "assets/cotton-scripting/icon.png",
+  "description": "Run scripting languages from data packs.",
+  "licence": "MIT",
+  "contact": {
+    "maven": "http://server.bbkr.space:8081/artifactory/libs-snapshot/io/github/cottonmc/cotton-scripting/",
+    "sources": "https://github.com/CottonMC/cotton-scripting",
+    "issues": "https://github.com/CottonMC/cotton-scripting/issues"
+  },
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.cottonmc.cotton_scripting.CottonScripting"
+    ]
+  },
+  "requires": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  },
+  "custom": {
+    "modmenu:api": true
+  }
+}
