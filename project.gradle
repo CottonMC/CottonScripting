@@ -11,7 +11,7 @@ ext {
 	fabricMod = "0.2.7+build.127"
 
 	silkMod = null;
-	jankson = "1.1.2"; //If needsShadow is false, jankson will not be included!
+	jankson = null; //If needsShadow is false, jankson will not be included!
 	cotton = null;
 
 	needsShadow = false;//true;
@@ -21,5 +21,5 @@ repositories {
 }
 
 dependencies {
-	compileOnly ("com.google.code.findbugs:jsr305:3.0.2") { transitive=false; }
+
 }
