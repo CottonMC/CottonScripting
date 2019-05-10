@@ -1,6 +1,7 @@
-package io.github.cottonmc.cotton_scripting;
+package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
+import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
@@ -98,7 +99,7 @@ public class ScriptContext {
 	 * @param feedback The message to send.
 	 * @param sendToStatusBar If false, this will appear in the caller's chat box.
 	 */
-	public void sendFeedBack(String feedback, boolean sendToStatusBar) {
+	public void sendFeedback(String feedback, boolean sendToStatusBar) {
 		commandSource.sendFeedback(new TextComponent(feedback), sendToStatusBar);
 	}
 

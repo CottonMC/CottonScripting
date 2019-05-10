@@ -3,11 +3,12 @@ package io.github.cottonmc.cotton_scripting;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.cottonmc.cotton_scripting.api.ScriptContext;
+import io.github.cottonmc.cotton_scripting.impl.ScriptArgumentType;
+import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.command.arguments.IdentifierArgumentType;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.command.CommandManager;
@@ -78,6 +79,9 @@ public class CottonScripting implements ModInitializer {
 										} catch (ScriptException e) {
 											context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
 											continue;
+										} catch (Throwable t) {
+											context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
+											return -1;
 										}
 										if (result != null) {
 											if (scripts.size() == 1) context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
@@ -140,6 +144,9 @@ public class CottonScripting implements ModInitializer {
 			return -1;
 		} catch (NoSuchMethodException e) {
 			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_function", funcName, scriptName));
+			return -1;
+		} catch (Throwable t) {
+			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
 			return -1;
 		}
 		if (result != null) {

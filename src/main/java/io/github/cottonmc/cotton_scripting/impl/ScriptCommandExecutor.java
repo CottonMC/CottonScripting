@@ -1,4 +1,4 @@
-package io.github.cottonmc.cotton_scripting;
+package io.github.cottonmc.cotton_scripting.impl;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.command.CommandOutput;

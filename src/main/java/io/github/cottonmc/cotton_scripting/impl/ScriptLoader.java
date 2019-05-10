@@ -1,6 +1,7 @@
-package io.github.cottonmc.cotton_scripting;
+package io.github.cottonmc.cotton_scripting.impl;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import io.github.cottonmc.cotton_scripting.CottonScripting;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.resource.Resource;
