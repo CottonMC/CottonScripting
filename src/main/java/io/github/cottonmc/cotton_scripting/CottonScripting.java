@@ -2,6 +2,7 @@ package io.github.cottonmc.cotton_scripting;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -16,6 +17,7 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.util.Collection;
 
 public class CottonScripting implements ModInitializer {
 
@@ -28,32 +30,37 @@ public class CottonScripting implements ModInitializer {
 
 		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
-						.then(CommandManager.argument("script", IdentifierArgumentType.create())
+						.then(CommandManager.argument("script", ScriptArgumentType.create())
 								.suggests(ScriptLoader.SCRIPT_SUGGESTIONS)
 								.executes(context -> {
-									Identifier scriptName = context.getArgument("script", Identifier.class);
-									String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.')+1);
-									String script = ScriptLoader.SCRIPTS.get(scriptName);
-									if (script == null) {
-										context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
-										return -1;
+									Collection<Identifier> scripts = ScriptArgumentType.getScripts(context, "script");
+									int successful = 0;
+									for (Identifier scriptName : scripts) {
+										String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.') + 1);
+										String script = ScriptLoader.SCRIPTS.get(scriptName);
+										if (script == null) {
+											context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
+											continue;
+										}
+										ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
+										if (engine == null) {
+											context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
+											continue;
+										}
+										Object result;
+										try {
+											result = engine.eval(script);
+										} catch (ScriptException e) {
+											context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
+											continue;
+										}
+										if (result != null) {
+											if (scripts.size() == 1) context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
+										}
+										successful++;
 									}
-									ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
-									if (engine == null) {
-										context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
-										return -1;
-									}
-									Object result;
-									try {
-										result = engine.eval(script);
-									} catch (ScriptException e) {
-										context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
-										return -1;
-									}
-									if (result != null) {
-										context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
-									}
-									return 1;
+									if (scripts.size() != 1) context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.tag_result", successful), false);
+									return successful;
 								})
 						.then(CommandManager.argument("function", StringArgumentType.word())
 								.executes(context -> callFunction(context))
@@ -65,7 +72,21 @@ public class CottonScripting implements ModInitializer {
 	}
 
 	private static int callFunction(CommandContext<ServerCommandSource> context, String... args) {
-		Identifier scriptName = context.getArgument("script", Identifier.class);
+		Collection<Identifier> scripts;
+		try {
+			scripts = ScriptArgumentType.getScripts(context, "script");
+		} catch (CommandSyntaxException e) {
+			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.syntax_exception", e.getMessage()));
+			return -1;
+		}
+		if (scripts.size() != 1) {
+			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.only_one_script"));
+			return -1;
+		}
+		Identifier scriptName = null;
+		for (Identifier id : scripts) {
+			scriptName = id;
+		}
 		String funcName = context.getArgument("function", String.class);
 		String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.')+1);
 		String script = ScriptLoader.SCRIPTS.get(scriptName);
