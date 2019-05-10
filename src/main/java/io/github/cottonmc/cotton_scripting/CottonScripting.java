@@ -7,16 +7,14 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.command.arguments.IdentifierArgumentType;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.Identifier;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.util.Collection;
 
 public class CottonScripting implements ModInitializer {
@@ -27,6 +25,33 @@ public class CottonScripting implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ScriptLoader());
+
+		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register(
+				CommandManager.literal("script-engines")
+						.then(CommandManager.literal("list")
+								.executes(context -> {
+									for (ScriptEngineFactory factory : SCRIPT_MANAGER.getEngineFactories()) {
+										context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
+										context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.languages", factory.getExtensions().toString()), false);
+									}
+									return 1;
+								})
+						)
+						.then(CommandManager.literal("for")
+								.then(CommandManager.argument("extension", StringArgumentType.word())
+										.executes(context -> {
+											ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(context.getArgument("extension", String.class));
+											if (engine == null) {
+												context.getSource().sendError(new TranslatableComponent("engines.cotton-scripting.no_engines", context.getArgument("extension", String.class)));
+												return -1;
+											}
+											ScriptEngineFactory factory = engine.getFactory();
+											context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
+											return 1;
+										})
+								)
+						)
+		));
 
 		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
@@ -66,7 +91,12 @@ public class CottonScripting implements ModInitializer {
 								.executes(context -> callFunction(context))
 						.then(CommandManager.argument("arguments", StringArgumentType.greedyString()).executes(context -> {
 							String arguments = context.getArgument("arguments", String.class);
-							return callFunction(context, arguments);
+							String[] args = arguments.split(",");
+							for (int i = 0; i < args.length; i++) {
+								String arg = args[i];
+								if (arg.charAt(0) == ' ') args[i] = arg.substring(1);
+							}
+							return callFunction(context, args);
 						}))))
 		)));
 	}
