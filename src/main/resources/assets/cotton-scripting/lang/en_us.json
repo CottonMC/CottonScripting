@@ -10,5 +10,6 @@
   "error.cotton-scripting.no_function": "The function %s wasn't found in script %s!",
   "error.cotton-scripting.syntax_exception": "Improper command syntax: %s",
   "error.cotton-scripting.only_one_script": "You cannot call a function on a script tag!",
+  "error.cotton-scripting.no_executor": "No new executor found, defaulting to the original executor.",
   "error.cotton-scripting.unknown_error": "An unexpected error occured: %s"
 }

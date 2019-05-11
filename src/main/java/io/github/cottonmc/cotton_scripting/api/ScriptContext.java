@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 
 /**
  * An object storing various context about how a script was called.
- * REMEMBER: Any Minecraft classes will be obfuscated in a production environment! Don't call Minecraft classes from scripts!
+ * REMEMBER: Any Minecraft classes will be obfuscated in a production environment! Don't call Minecraft classes or methods from scripts!
  * Running vanilla commands will do most of you would want to do for you.
  * If you *absolutely* need to use MC classes, write a plugin mod.
  */
