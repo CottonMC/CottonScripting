@@ -1,5 +1,6 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
+import io.github.cottonmc.cotton_scripting.CottonScripting;
 import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagContainer;
 import net.minecraft.util.Identifier;
@@ -11,6 +12,10 @@ public class ScriptTags {
 	private static TagContainer<Identifier> container = new TagContainer<>(id -> Optional.empty(), "tags/scripts", true, "script");
 	private static int latestVersion;
 
+	public static final Tag<Identifier> LOAD = register(new Identifier(CottonScripting.MODID, "load"));
+	public static final Tag<Identifier> TICK = register(new Identifier(CottonScripting.MODID, "tick"));
+	public static final Tag<Identifier> DATABOARD_LISTENERS = register(new Identifier(CottonScripting.MODID, "databoard_listeners_listeners"));
+
 	public static void setContainer(TagContainer<Identifier> id) {
 		container = id;
 		++latestVersion;
@@ -20,8 +25,8 @@ public class ScriptTags {
 		return container;
 	}
 
-	private static Tag<Identifier> register(String id) {
-		return new CachingTag(new Identifier(id));
+	public static Tag<Identifier> register(Identifier id) {
+		return new CachingTag(id);
 	}
 
 	static class CachingTag extends Tag<Identifier> {

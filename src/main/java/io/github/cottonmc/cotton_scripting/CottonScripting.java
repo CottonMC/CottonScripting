@@ -1,11 +1,14 @@
 package io.github.cottonmc.cotton_scripting;
 
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.cottonmc.cotton_scripting.api.ScriptContext;
+import io.github.cottonmc.cotton_scripting.api.ScriptTools;
 import io.github.cottonmc.cotton_scripting.impl.ScriptArgumentType;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
+import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -13,6 +16,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
 import javax.script.*;
@@ -56,10 +60,10 @@ public class CottonScripting implements ModInitializer {
 
 		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
-						.then(CommandManager.argument("script", ScriptArgumentType.create())
+						.then(CommandManager.argument("script", StringArgumentType.string())
 								.suggests(ScriptLoader.SCRIPT_SUGGESTIONS)
 								.executes(context -> {
-									Collection<Identifier> scripts = ScriptArgumentType.getScripts(context, "script");
+									Collection<Identifier> scripts = new ScriptArgumentType().parse(new StringReader(context.getArgument("script", String.class))).getScripts(context);
 									int successful = 0;
 									for (Identifier scriptName : scripts) {
 										String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.') + 1);
@@ -108,7 +112,7 @@ public class CottonScripting implements ModInitializer {
 	private static int callFunction(CommandContext<ServerCommandSource> context, String... args) {
 		Collection<Identifier> scripts;
 		try {
-			scripts = ScriptArgumentType.getScripts(context, "script");
+			scripts = new ScriptArgumentType().parse(new StringReader(context.getArgument("script", String.class))).getScripts(context);
 		} catch (CommandSyntaxException e) {
 			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.syntax_exception", e.getMessage()));
 			return -1;
@@ -153,5 +157,33 @@ public class CottonScripting implements ModInitializer {
 			context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
 		}
 		return 1;
+	}
+
+	public static void runScriptFromServer(Identifier id, ServerWorld world) {
+		ServerCommandSource source = ScriptTools.getServerExecutor(world);
+		String extension = id.getPath().substring(id.getPath().lastIndexOf('.') + 1);
+		String script = ScriptLoader.SCRIPTS.get(id);
+		if (script == null) {
+			source.sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
+			return;
+		}
+		ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
+		if (engine == null) {
+			source.sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
+			return;
+		}
+		Object result;
+		try {
+			result = engine.eval(script);
+		} catch (ScriptException e) {
+			source.sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
+			return;
+		} catch (Throwable t) {
+			source.sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
+			return;
+		}
+		if (result != null) {
+			source.sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
+		}
 	}
 }

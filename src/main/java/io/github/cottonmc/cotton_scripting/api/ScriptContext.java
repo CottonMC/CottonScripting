@@ -41,6 +41,18 @@ public class ScriptContext {
 	}
 
 	/**
+	 * Change the ServerCommandSource of this context.
+	 * @param source The source to set to.
+	 * @return This object with the source, world, and position changed to match the new source.
+	 */
+	public ScriptContext runBy(ServerCommandSource source) {
+		this.commandSource = source;
+		this.commandWorld = source.getWorld();
+		this.commandPosition = new BlockPos(source.getPosition());
+		return this;
+	}
+
+	/**
 	 * DO NOT CALL FROM SCRIPT. Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The vanilla command context a script-call command was run with.
 	 */
@@ -123,7 +135,7 @@ public class ScriptContext {
 			final boolean[] successful = {false};
 			try {
 				ServerCommandSource source = new ServerCommandSource(
-						new ScriptCommandExecutor(commandSource),
+						new ScriptCommandExecutor(commandSource.getWorld()),
 						commandSource.getPosition(),
 						Vec2f.ZERO,
 						commandWorld,

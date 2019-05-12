@@ -3,21 +3,29 @@ package io.github.cottonmc.cotton_scripting.api;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
-import net.minecraft.client.resource.language.I18n;
+import net.fabricmc.fabric.api.server.PlayerStream;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.command.EntitySelectorReader;
 import net.minecraft.command.arguments.EntityArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RayTraceContext;
+import org.apache.logging.log4j.core.jmx.Server;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A toolset for performing common actions without the need for accessing obfuscated code.
@@ -83,6 +91,46 @@ public class ScriptTools {
 	}
 
 	/**
+	 * Obtain the command source to emulate running from a server command line.
+	 * @param world The world to execute in.
+	 * @return a wrapped source of the server, with no entity associated with it.
+	 */
+	public static ServerCommandSource getServerExecutor(ServerWorld world) {
+		return new ServerCommandSource(MinecraftServer.DUMMY,
+				Vec3d.ZERO,
+				Vec2f.ZERO,
+				world,
+				2,
+				"Server",
+				new TextComponent("Server"),
+				world.getServer(),
+				null);
+	}
+
+	/**
+	 * Obtain a command source from a player's name.
+	 * @param original The original command source to obtain world, executor and fallback from.
+	 * @param name The name of the player to execute as.
+	 * @return A wrapped source of the player, or the original source if the player wasn't found.
+	 */
+	public static ServerCommandSource getPlayerExecutor(ServerCommandSource original, String name) {
+		Stream<ServerPlayerEntity> players = PlayerStream.all(original.getMinecraftServer());
+		for (Object obj : players.toArray()) {
+			ServerPlayerEntity player = (ServerPlayerEntity)obj;
+			if (player.getName().getText().equals(name)) return new ServerCommandSource(new ScriptCommandExecutor(player.getEntityWorld()),
+					player.getPos(),
+					player.getRotationClient(),
+					(ServerWorld)player.getEntityWorld(),
+					2,
+					player.getDisplayName().getText(), player.getDisplayName(),
+					player.getEntityWorld().getServer(),
+					player);
+		}
+		original.sendError(new TranslatableComponent("error.cotton-scripting.no_executor"));
+		return original;
+	}
+
+	/**
 	 * Obtain a new command source to execute from, based on an Entity UUID.
 	 * @param original The original command source to obtain world, executor and fallback from.
 	 * @param entityUuid The UUID of the entity to use.
@@ -94,12 +142,12 @@ public class ScriptTools {
 			original.sendError(new TranslatableComponent("error.cotton-scripting.no_executor"));
 			return original;
 		}
-		return new ServerCommandSource(new ScriptCommandExecutor(original),
+		return new ServerCommandSource(new ScriptCommandExecutor(entity.getEntityWorld()),
 				entity.getPos(),
 				entity.getRotationClient(),
 				(ServerWorld)entity.getEntityWorld(),
 				2,
-				entity.getDisplayName().toString(), entity.getDisplayName(),
+				entity.getDisplayName().getText(), entity.getDisplayName(),
 				entity.getEntityWorld().getServer(),
 				entity);
 	}
@@ -112,6 +160,7 @@ public class ScriptTools {
 	 * @return The wrapped source of the entity found, or the original source if no entity matching the selector was found.
 	 */
 	public static ServerCommandSource getExecutorFromSelector(ServerCommandSource original, String options) {
+
 		EntitySelector selector;
 		try {
 			selector = createEntitySelector(options, false, true);

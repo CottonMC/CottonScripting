@@ -36,34 +36,34 @@ public class ScriptArgumentType implements ArgumentType<ScriptArgumentType.Scrip
 			id = Identifier.parse(reader);
 			return new ScriptArgument() {
 				public Collection<Identifier> getScripts(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-					Tag<Identifier> tag = getIdTag(context, id);
+					Tag<Identifier> tag = getIdTag(id);
 					return tag.values();
 				}
 
-				public Either<Identifier, Tag<Identifier>> getScriptOrTag(CommandContext<ServerCommandSource> commandContext_1) throws CommandSyntaxException {
-					return Either.right(getIdTag(commandContext_1, id));
+				public Either<Identifier, Tag<Identifier>> getScriptOrTag(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+					return Either.right(getIdTag(id));
 				}
 			};
 		} else {
 			id = Identifier.parse(reader);
 			return new ScriptArgument() {
 				public Collection<Identifier> getScripts(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-					return Collections.singleton(getId(context, id));
+					return Collections.singleton(getId(id));
 				}
 
-				public Either<Identifier, Tag<Identifier>> getScriptOrTag(CommandContext<ServerCommandSource> commandContext_1) throws CommandSyntaxException {
-					return Either.left(getId(commandContext_1, id));
+				public Either<Identifier, Tag<Identifier>> getScriptOrTag(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+					return Either.left(getId(id));
 				}
 			};
 		}
 	}
 
-	private static Identifier getId(CommandContext<ServerCommandSource> context, Identifier id) throws CommandSyntaxException {
+	private static Identifier getId(Identifier id) throws CommandSyntaxException {
 		if (!ScriptLoader.SCRIPTS.containsKey(id)) throw UNKNOWN_ID_EXCEPTION.create(id.toString());
 		return id;
 	}
 
-	private static Tag<Identifier> getIdTag(CommandContext<ServerCommandSource> context, Identifier id) throws CommandSyntaxException {
+	private static Tag<Identifier> getIdTag(Identifier id) throws CommandSyntaxException {
 		Tag<Identifier> tag = ScriptTags.getContainer().get(id);
 		if (tag == null) {
 			throw UNKNOWN_TAG_EXCEPTION.create(id.toString());
