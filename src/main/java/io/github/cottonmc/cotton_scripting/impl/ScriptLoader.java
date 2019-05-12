@@ -22,16 +22,13 @@ import java.util.concurrent.Executor;
 
 public class ScriptLoader implements SimpleResourceReloadListener {
 	public static Map<Identifier, String> SCRIPTS = new HashMap<>();
-	public static SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "suggestions"),
-			(context, builder) -> {
-				Collection<Identifier> scriptKeys = SCRIPTS.keySet();
-				scriptKeys.addAll(ScriptTags.getContainer().getKeys());
-				return CommandSource.suggestIdentifiers(scriptKeys, builder);
-			});
+	public static SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "scripts"),
+			(context, builder) -> CommandSource.suggestIdentifiers(SCRIPTS.keySet(), builder));
+	public static SuggestionProvider<ServerCommandSource> SCRIPT_TAG_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "script_tags"),
+			(context, builder) -> CommandSource.suggestIdentifiers(ScriptTags.getContainer().getKeys(), builder));
 	private final TagContainer<Identifier> SCRIPT_TAGS = ScriptTags.getContainer();
 	Map<Identifier, Tag.Builder<Identifier>> scriptBuilder;
 	CompletableFuture<Map<Identifier, Tag.Builder<Identifier>>> tagFuture;
-
 
 	@Override
 	public CompletableFuture load(ResourceManager manager, Profiler profiler, Executor executor) {

@@ -5,14 +5,15 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.PersistentState;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GlobalDataboard extends PersistentState {
+public class GlobalWorldStorage extends PersistentState {
 	private Map<String, Object> values;
 
-	public GlobalDataboard() {
-		super("global_databoard");
+	public GlobalWorldStorage() {
+		super("global_world_storage");
 		values = new HashMap<>();
 	}
 
@@ -22,6 +23,7 @@ public class GlobalDataboard extends PersistentState {
 	}
 
 	public Object get(String name) {
+		if (!values.containsKey(name)) return 0;
 		return values.get(name);
 	}
 

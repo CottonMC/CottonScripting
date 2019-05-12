@@ -8,11 +8,11 @@ import net.minecraft.world.PersistentState;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EntityDataboard extends PersistentState {
+public class EntityWorldStorage extends PersistentState {
 	private Map<String, Map<String, Object>> values;
 
-	public EntityDataboard() {
-		super("entity_databoard");
+	public EntityWorldStorage() {
+		super("entity_world_storage");
 		values = new HashMap<>();
 	}
 
@@ -26,6 +26,7 @@ public class EntityDataboard extends PersistentState {
 	public Object get(String name, String entity) {
 		if (!values.containsKey(name)) values.put(name, new HashMap<>());
 		Map<String, Object> value = values.get(name);
+		if (!value.containsKey(entity)) return 0;
 		return value.get(entity);
 	}
 

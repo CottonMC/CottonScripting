@@ -14,7 +14,7 @@ public class ScriptTags {
 
 	public static final Tag<Identifier> LOAD = register(new Identifier(CottonScripting.MODID, "load"));
 	public static final Tag<Identifier> TICK = register(new Identifier(CottonScripting.MODID, "tick"));
-	public static final Tag<Identifier> DATABOARD_LISTENERS = register(new Identifier(CottonScripting.MODID, "databoard_listeners_listeners"));
+	public static final Tag<Identifier> WORLD_STORAGE_LISTENERS = register(new Identifier(CottonScripting.MODID, "world_storage_listeners"));
 
 	public static void setContainer(TagContainer<Identifier> id) {
 		container = id;
