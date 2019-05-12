@@ -2,7 +2,7 @@ package io.github.cottonmc.cotton_scripting;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import io.github.cottonmc.cotton_scripting.api.ScriptContext;
+import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
 import io.github.cottonmc.cotton_scripting.api.ScriptTools;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
@@ -97,12 +97,14 @@ public class CottonScripting implements ModInitializer {
 			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
 			return -1;
 		}
+		ScriptContext enginectx = engine.getContext();
+		CottonScriptContext scriptctx = new CottonScriptContext(context, scriptName, args);
+		enginectx.setAttribute("cotton_context", scriptctx, 100);
 		Object result;
 		try {
-			result = engine.eval(script);
+			result = engine.eval(script, enginectx);
 			if (funcName != null) {
 				Invocable invocable = (Invocable) engine;
-				ScriptContext scriptctx = new ScriptContext(context, scriptName, args);
 				result = invocable.invokeFunction(funcName, scriptctx);
 			}
 		} catch (ScriptException e) {

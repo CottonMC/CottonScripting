@@ -23,7 +23,7 @@ import net.minecraft.world.World;
  * Running vanilla commands will do most of you would want to do for you.
  * If you *absolutely* need to use MC classes, write a plugin mod.
  */
-public class ScriptContext {
+public class CottonScriptContext {
 	private CommandContext<ServerCommandSource> commandContext;
 	private ServerCommandSource commandSource;
 	private ServerWorld commandWorld;
@@ -31,7 +31,7 @@ public class ScriptContext {
 	private Identifier script;
 	private String[] arguments;
 
-	public ScriptContext(CommandContext<ServerCommandSource> context, Identifier script, String...arguments) {
+	public CottonScriptContext(CommandContext<ServerCommandSource> context, Identifier script, String...arguments) {
 		this.commandContext = context;
 		this.commandSource = context.getSource();
 		this.commandWorld = context.getSource().getWorld();
@@ -45,7 +45,7 @@ public class ScriptContext {
 	 * @param source The source to set to.
 	 * @return This object with the source, world, and position changed to match the new source.
 	 */
-	public ScriptContext runBy(ServerCommandSource source) {
+	public CottonScriptContext runBy(ServerCommandSource source) {
 		this.commandSource = source;
 		this.commandWorld = source.getWorld();
 		this.commandPosition = new BlockPos(source.getPosition());

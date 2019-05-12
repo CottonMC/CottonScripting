@@ -17,7 +17,7 @@ public class WorldStorage {
 
 	/**
 	 * Get a value saved to the world, independent from any entities.
-	 * @param world Pass ScriptContext.getCommandWorld() here.
+	 * @param world Pass CottonScriptContext.getCommandWorld() here.
 	 * @param name The name of the value. Will create the value if it doesn't yet exist.
 	 * @return The value for the world. Returns 0 if the value has never been set.
 	 */
@@ -29,7 +29,7 @@ public class WorldStorage {
 	/**
 	 * Set a value saved to the world, indepedent from any entities.
 	 * Also runs any scripts in the "cotton:scorebase_listeners" tag.
-	 * @param world Pass ScriptContext.getCommandWorld() here.
+	 * @param world Pass CottonScriptContext.getCommandWorld() here.
 	 * @param name The name of the value. Will create the value if it doesn't yet exist.
 	 * @param value The value to set.
 	 */
