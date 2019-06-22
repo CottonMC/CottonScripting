@@ -140,6 +140,9 @@ public class CottonScripting implements ModInitializer {
 			}
 			Object result;
 			try {
+				ScriptContext enginectx = engine.getContext();
+				CottonScriptContext scriptctx = new CottonScriptContext(context, scriptName);
+				enginectx.setAttribute("cotton_context", scriptctx, 100);
 				result = engine.eval(script);
 			} catch (ScriptException e) {
 				context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));

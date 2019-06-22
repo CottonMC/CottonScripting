@@ -33,7 +33,6 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 	@Override
 	public CompletableFuture load(ResourceManager manager, Profiler profiler, Executor executor) {
 		SCRIPT_TAGS.clear();
-		tagFuture = SCRIPT_TAGS.prepareReload(manager, executor);
 		return CompletableFuture.supplyAsync(() -> {
 			SCRIPTS.clear();
 			Collection<Identifier> resources = manager.findResources("scripts", (name) -> true);
@@ -48,6 +47,7 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 					e.printStackTrace();
 				}
 			}
+			tagFuture = SCRIPT_TAGS.prepareReload(manager, executor);
 			return SCRIPTS;
 		});
 	}
@@ -67,5 +67,11 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 	@Override
 	public Identifier getFabricId() {
 		return new Identifier(CottonScripting.MODID, "script_loader");
+	}
+
+	public static Optional<Identifier> getScriptKey(Identifier id) {
+		System.out.println(SCRIPTS.keySet());
+		if (SCRIPTS.containsKey(id)) return Optional.of(id);
+		else return Optional.empty();
 	}
 }

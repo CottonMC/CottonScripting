@@ -6,10 +6,9 @@ import net.minecraft.tag.TagContainer;
 import net.minecraft.util.Identifier;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public class ScriptTags {
-	private static TagContainer<Identifier> container = new TagContainer<>(id -> Optional.empty(), "tags/scripts", true, "script");
+	private static TagContainer<Identifier> container = new TagContainer<>(ScriptLoader::getScriptKey, "tags/scripts", true, "script");
 	private static int latestVersion;
 
 	public static final Tag<Identifier> LOAD = register(new Identifier(CottonScripting.MODID, "load"));
