@@ -27,8 +27,8 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 	public static SuggestionProvider<ServerCommandSource> SCRIPT_TAG_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "script_tags"),
 			(context, builder) -> CommandSource.suggestIdentifiers(ScriptTags.getContainer().getKeys(), builder));
 	private final TagContainer<Identifier> SCRIPT_TAGS = ScriptTags.getContainer();
-	Map<Identifier, Tag.Builder<Identifier>> scriptBuilder;
-	CompletableFuture<Map<Identifier, Tag.Builder<Identifier>>> tagFuture;
+	private Map<Identifier, Tag.Builder<Identifier>> scriptBuilder;
+	private CompletableFuture<Map<Identifier, Tag.Builder<Identifier>>> tagFuture;
 
 	@Override
 	public CompletableFuture load(ResourceManager manager, Profiler profiler, Executor executor) {
@@ -70,7 +70,6 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 	}
 
 	public static Optional<Identifier> getScriptKey(Identifier id) {
-		System.out.println(SCRIPTS.keySet());
 		if (SCRIPTS.containsKey(id)) return Optional.of(id);
 		else return Optional.empty();
 	}

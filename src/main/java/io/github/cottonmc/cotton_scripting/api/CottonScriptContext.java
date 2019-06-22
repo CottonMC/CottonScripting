@@ -17,6 +17,8 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
+
 /**
  * An object storing various context about how a script was called.
  * REMEMBER: Any Minecraft classes will be obfuscated in a production environment! Don't call Minecraft classes or methods from scripts!
@@ -40,6 +42,15 @@ public class CottonScriptContext {
 		this.arguments = arguments;
 	}
 
+	public CottonScriptContext(ServerCommandSource source, Identifier script, String...arguments) {
+		this.commandContext = null;
+		this.commandSource = source;
+		this.commandWorld = source.getWorld();
+		this.commandPosition = new BlockPos(source.getPosition());
+		this.script = script;
+		this.arguments = arguments;
+	}
+
 	/**
 	 * Change the ServerCommandSource of this context.
 	 * @param source The source to set to.
@@ -56,6 +67,7 @@ public class CottonScriptContext {
 	 * DO NOT CALL FROM SCRIPT. Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The vanilla command context a script-call command was run with.
 	 */
+	@Nullable
 	public CommandContext<ServerCommandSource> getCommandContext() {
 		return commandContext;
 	}

@@ -35,8 +35,8 @@ public class WorldStorage {
 	 */
 	public static void setGlobalValue(ServerWorld world, String name, Object value) {
 		world.getPersistentStateManager().getOrCreate(GlobalWorldStorage::new, "global_world_storage").put(name, value);
-		for (Identifier id : ScriptTags.WORLD_STORAGE_LISTENERS.values()) {
-			CottonScripting.runScriptFromServer(id, world);
+		for (Identifier id : ScriptTags.LISTEN.values()) {
+			CottonScripting.runScriptFromServer(id, world.getServer());
 		}
 	}
 
@@ -64,8 +64,8 @@ public class WorldStorage {
 		if (source.getEntity() == null) throw new IllegalArgumentException("Must have an Entity to set a value for!");
 		String uuid = source.getEntity().getUuidAsString();
 		source.getWorld().getPersistentStateManager().getOrCreate(EntityWorldStorage::new, "entity_world_storage").put(name, uuid, value);
-		for (Identifier id : ScriptTags.WORLD_STORAGE_LISTENERS.values()) {
-			CottonScripting.runScriptFromServer(id, source.getWorld());
+		for (Identifier id : ScriptTags.LISTEN.values()) {
+			CottonScripting.runScriptFromServer(id, source.getMinecraftServer());
 		}
 	}
 }

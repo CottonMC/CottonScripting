@@ -3,18 +3,18 @@ package io.github.cottonmc.cotton_scripting;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
-import io.github.cottonmc.cotton_scripting.api.ScriptTools;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.server.ServerTickCallback;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.command.arguments.IdentifierArgumentType;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 
 import javax.annotation.Nullable;
@@ -82,6 +82,12 @@ public class CottonScripting implements ModInitializer {
 						)
 				)
 		));
+
+		ServerTickCallback.EVENT.register((server) -> {
+			for (Identifier id : ScriptTags.TICK.values()) {
+				runScriptFromServer(id, server);
+			}
+		});
 	}
 
 	private static int runScript(CommandContext<ServerCommandSource> context, @Nullable String funcName, String... args) {
@@ -160,8 +166,8 @@ public class CottonScripting implements ModInitializer {
 		return successful;
 	}
 
-	public static void runScriptFromServer(Identifier id, ServerWorld world) {
-		ServerCommandSource source = ScriptTools.getServerExecutor(world);
+	public static void runScriptFromServer(Identifier id, MinecraftServer server) {
+		ServerCommandSource source = server.getCommandSource();
 		String extension = id.getPath().substring(id.getPath().lastIndexOf('.') + 1);
 		String script = ScriptLoader.SCRIPTS.get(id);
 		if (script == null) {
@@ -175,6 +181,9 @@ public class CottonScripting implements ModInitializer {
 		}
 		Object result;
 		try {
+			ScriptContext enginectx = engine.getContext();
+			CottonScriptContext scriptctx = new CottonScriptContext(source, id);
+			enginectx.setAttribute("cotton_context", scriptctx, 100);
 			result = engine.eval(script);
 		} catch (ScriptException e) {
 			source.sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));

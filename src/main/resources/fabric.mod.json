@@ -19,6 +19,9 @@
       "io.github.cottonmc.cotton_scripting.CottonScripting"
     ]
   },
+  "mixins": [
+    "mixins.cotton-scripting.json"
+  ],
   "requires": {
     "fabricloader": ">=0.4.0",
     "fabric": "*"

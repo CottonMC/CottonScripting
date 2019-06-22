@@ -8,16 +8,13 @@ import net.minecraft.command.EntitySelector;
 import net.minecraft.command.EntitySelectorReader;
 import net.minecraft.command.arguments.EntityArgumentType;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RayTraceContext;
 import java.util.UUID;
@@ -92,15 +89,7 @@ public class ScriptTools {
 	 * @return a wrapped source of the server, with no entity associated with it.
 	 */
 	public static ServerCommandSource getServerExecutor(ServerWorld world) {
-		return new ServerCommandSource(MinecraftServer.DUMMY,
-				Vec3d.ZERO,
-				Vec2f.ZERO,
-				world,
-				2,
-				"Server",
-				new TextComponent("Server"),
-				world.getServer(),
-				null);
+		return world.getServer().getCommandSource();
 	}
 
 	/**
