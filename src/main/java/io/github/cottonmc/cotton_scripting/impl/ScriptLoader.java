@@ -16,6 +16,7 @@ import net.minecraft.util.profiler.Profiler;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -40,7 +41,7 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 			for (Identifier fileId : resources) {
 				try {
 					Resource res = manager.getResource(fileId);
-					String script = IOUtils.toString(res.getInputStream());
+					String script = IOUtils.toString(res.getInputStream(), Charset.defaultCharset());
 					int localPath = fileId.getPath().indexOf('/')+1;
 					Identifier scriptId = new Identifier(fileId.getNamespace(), fileId.getPath().substring(localPath));
 					SCRIPTS.put(scriptId, script);
