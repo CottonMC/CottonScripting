@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.event.server.ServerTickCallback;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.command.arguments.IdentifierArgumentType;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -33,7 +33,7 @@ public class CottonScripting implements ModInitializer {
 		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
 						.then(CommandManager.literal("run")
-								.then(CommandManager.argument("script", IdentifierArgumentType.create())
+								.then(CommandManager.argument("script", IdentifierArgumentType.identifier())
 										.suggests(ScriptLoader.SCRIPT_SUGGESTIONS)
 										.executes(context -> runScript(context, null))
 										.then(CommandManager.argument("function", StringArgumentType.word())
@@ -52,7 +52,7 @@ public class CottonScripting implements ModInitializer {
 										)
 								)
 						).then(CommandManager.literal("tag")
-								.then(CommandManager.argument("tag", IdentifierArgumentType.create())
+								.then(CommandManager.argument("tag", IdentifierArgumentType.identifier())
 										.suggests(ScriptLoader.SCRIPT_TAG_SUGGESTIONS)
 										.executes(CottonScripting::runScriptTag)
 								)
@@ -60,8 +60,8 @@ public class CottonScripting implements ModInitializer {
 								.then(CommandManager.literal("list")
 										.executes(context -> {
 											for (ScriptEngineFactory factory : SCRIPT_MANAGER.getEngineFactories()) {
-												context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
-												context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.languages", factory.getExtensions().toString()), false);
+												context.getSource().sendFeedback(new TranslatableText("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
+												context.getSource().sendFeedback(new TranslatableText("engines.cotton-scripting.languages", factory.getExtensions().toString()), false);
 											}
 											return 1;
 										})
@@ -70,11 +70,11 @@ public class CottonScripting implements ModInitializer {
 												.executes(context -> {
 													ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(context.getArgument("extension", String.class));
 													if (engine == null) {
-														context.getSource().sendError(new TranslatableComponent("engines.cotton-scripting.no_engines", context.getArgument("extension", String.class)));
+														context.getSource().sendError(new TranslatableText("engines.cotton-scripting.no_engines", context.getArgument("extension", String.class)));
 														return -1;
 													}
 													ScriptEngineFactory factory = engine.getFactory();
-													context.getSource().sendFeedback(new TranslatableComponent("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
+													context.getSource().sendFeedback(new TranslatableText("engines.cotton-scripting.engine", factory.getEngineName(), factory.getLanguageName()), false);
 													return 1;
 												})
 										)
@@ -95,12 +95,12 @@ public class CottonScripting implements ModInitializer {
 		String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.')+1);
 		String script = ScriptLoader.SCRIPTS.get(scriptName);
 		if (script == null) {
-			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
+			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_script"));
 			return -1;
 		}
 		ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
 		if (engine == null) {
-			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
+			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_engine"));
 			return -1;
 		}
 		ScriptContext enginectx = engine.getContext();
@@ -114,17 +114,17 @@ public class CottonScripting implements ModInitializer {
 				result = invocable.invokeFunction(funcName, scriptctx);
 			}
 		} catch (ScriptException e) {
-			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
+			context.getSource().sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
 			return -1;
 		} catch (NoSuchMethodException e) {
-			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_function", funcName, scriptName));
+			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_function", funcName, scriptName));
 			return -1;
 		} catch (Throwable t) {
-			context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
+			context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 			return -1;
 		}
 		if (result != null) {
-			context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
+			context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 		}
 		return 1;
 	}
@@ -136,12 +136,12 @@ public class CottonScripting implements ModInitializer {
 			String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.') + 1);
 			String script = ScriptLoader.SCRIPTS.get(scriptName);
 			if (script == null) {
-				context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
+				context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_script"));
 				continue;
 			}
 			ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
 			if (engine == null) {
-				context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
+				context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_engine"));
 				continue;
 			}
 			Object result;
@@ -151,18 +151,18 @@ public class CottonScripting implements ModInitializer {
 				enginectx.setAttribute("cotton_context", scriptctx, 100);
 				result = engine.eval(script);
 			} catch (ScriptException e) {
-				context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
+				context.getSource().sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
 				continue;
 			} catch (Throwable t) {
-				context.getSource().sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
+				context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 				continue;
 			}
 			if (result != null) {
-				if (scripts.size() == 1) context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
+				if (scripts.size() == 1) context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 			}
 			successful++;
 		}
-		if (scripts.size() != 1) context.getSource().sendFeedback(new TranslatableComponent("result.cotton-scripting.tag_result", successful), false);
+		if (scripts.size() != 1) context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.tag_result", successful), false);
 		return successful;
 	}
 
@@ -171,12 +171,12 @@ public class CottonScripting implements ModInitializer {
 		String extension = id.getPath().substring(id.getPath().lastIndexOf('.') + 1);
 		String script = ScriptLoader.SCRIPTS.get(id);
 		if (script == null) {
-			source.sendError(new TranslatableComponent("error.cotton-scripting.no_script"));
+			source.sendError(new TranslatableText("error.cotton-scripting.no_script"));
 			return;
 		}
 		ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
 		if (engine == null) {
-			source.sendError(new TranslatableComponent("error.cotton-scripting.no_engine"));
+			source.sendError(new TranslatableText("error.cotton-scripting.no_engine"));
 			return;
 		}
 		Object result;
@@ -186,14 +186,14 @@ public class CottonScripting implements ModInitializer {
 			enginectx.setAttribute("cotton_context", scriptctx, 100);
 			result = engine.eval(script);
 		} catch (ScriptException e) {
-			source.sendError(new TranslatableComponent("error.cotton-scripting.script_error", e.getMessage()));
+			source.sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
 			return;
 		} catch (Throwable t) {
-			source.sendError(new TranslatableComponent("error.cotton-scripting.unknown_error", t.getMessage()));
+			source.sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 			return;
 		}
 		if (result != null) {
-			source.sendFeedback(new TranslatableComponent("result.cotton-scripting.script_result", result), false);
+			source.sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 		}
 	}
 }

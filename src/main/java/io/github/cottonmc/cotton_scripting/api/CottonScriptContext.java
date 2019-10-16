@@ -3,7 +3,7 @@ package io.github.cottonmc.cotton_scripting.api;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.text.LiteralText;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -124,7 +124,7 @@ public class CottonScriptContext {
 	 * @param sendToStatusBar If false, this will appear in the caller's chat box.
 	 */
 	public void sendFeedback(String feedback, boolean sendToStatusBar) {
-		commandSource.sendFeedback(new TextComponent(feedback), sendToStatusBar);
+		commandSource.sendFeedback(new LiteralText(feedback), sendToStatusBar);
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class CottonScriptContext {
 	 * @param error The message to send.
 	 */
 	public void sendError(String error) {
-		commandSource.sendError(new TextComponent(error));
+		commandSource.sendError(new LiteralText(error));
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class CottonScriptContext {
 	 */
 	public boolean runCommand(String command) {
 		MinecraftServer server = commandWorld.getServer();
-		if (server.method_3814() && !ChatUtil.isEmpty(command)) {
+		if (server.hasGameDir() && !ChatUtil.isEmpty(command)) {
 			//this is *very* ugly, but lambdas require finality, so what can ya do
 			final boolean[] successful = {false};
 			try {
@@ -153,7 +153,7 @@ public class CottonScriptContext {
 						commandWorld,
 						2,
 						script.toString(),
-						new TextComponent(script.toString()),
+						new LiteralText(script.toString()),
 						commandWorld.getServer(),
 						null)
 						.withConsumer(((context, success, result) -> {

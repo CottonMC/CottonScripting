@@ -2,6 +2,7 @@ package io.github.cottonmc.cotton_scripting.impl;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
+import io.github.cottonmc.cotton_scripting.mixin.TagContainerAccessor;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.resource.Resource;
@@ -32,7 +33,7 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 
 	@Override
 	public CompletableFuture load(ResourceManager manager, Profiler profiler, Executor executor) {
-		SCRIPT_TAGS.clear();
+		((TagContainerAccessor)SCRIPT_TAGS).getIdMap().clear();
 		return CompletableFuture.supplyAsync(() -> {
 			SCRIPTS.clear();
 			Collection<Identifier> resources = manager.findResources("scripts", (name) -> true);

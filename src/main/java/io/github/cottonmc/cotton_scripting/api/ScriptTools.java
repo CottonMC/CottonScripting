@@ -8,7 +8,7 @@ import net.minecraft.command.EntitySelector;
 import net.minecraft.command.EntitySelectorReader;
 import net.minecraft.command.arguments.EntityArgumentType;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -34,7 +34,7 @@ public class ScriptTools {
 	 * @return The translated text with objects added in.
 	 */
 	public static String translate(String key, Object...objects) {
-		return new TranslatableComponent(key, objects).getText();
+		return new TranslatableText(key, objects).asString();
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class ScriptTools {
 	 */
 	public static String getTranslatedName(String id, String type) {
 		Identifier formattedId = new Identifier(id);
-		return new TranslatableComponent(type + "." + formattedId.getNamespace() + "." + formattedId.getPath()).getText();
+		return new TranslatableText(type + "." + formattedId.getNamespace() + "." + formattedId.getPath()).asString();
 	}
 
 	/**
@@ -102,16 +102,16 @@ public class ScriptTools {
 		Stream<ServerPlayerEntity> players = PlayerStream.all(original.getMinecraftServer());
 		for (Object obj : players.toArray()) {
 			ServerPlayerEntity player = (ServerPlayerEntity)obj;
-			if (player.getName().getText().equals(name)) return new ServerCommandSource(new ScriptCommandExecutor(player.getEntityWorld()),
+			if (player.getName().asString().equals(name)) return new ServerCommandSource(new ScriptCommandExecutor(player.getEntityWorld()),
 					player.getPos(),
 					player.getRotationClient(),
 					(ServerWorld)player.getEntityWorld(),
 					2,
-					player.getDisplayName().getText(), player.getDisplayName(),
+					player.getDisplayName().asString(), player.getDisplayName(),
 					player.getEntityWorld().getServer(),
 					player);
 		}
-		original.sendError(new TranslatableComponent("error.cotton-scripting.no_executor"));
+		original.sendError(new TranslatableText("error.cotton-scripting.no_executor"));
 		return original;
 	}
 
@@ -124,7 +124,7 @@ public class ScriptTools {
 	public static ServerCommandSource getExecutorFromUuid(ServerCommandSource original, String entityUuid) {
 		Entity entity = original.getWorld().getEntity(UUID.fromString(entityUuid));
 		if (entity == null) {
-			original.sendError(new TranslatableComponent("error.cotton-scripting.no_executor"));
+			original.sendError(new TranslatableText("error.cotton-scripting.no_executor"));
 			return original;
 		}
 		return new ServerCommandSource(new ScriptCommandExecutor(entity.getEntityWorld()),
@@ -132,7 +132,7 @@ public class ScriptTools {
 				entity.getRotationClient(),
 				(ServerWorld)entity.getEntityWorld(),
 				2,
-				entity.getDisplayName().getText(), entity.getDisplayName(),
+				entity.getDisplayName().asString(), entity.getDisplayName(),
 				entity.getEntityWorld().getServer(),
 				entity);
 	}
@@ -152,7 +152,7 @@ public class ScriptTools {
 			Entity result = selector.getEntity(original);
 			return getExecutorFromUuid(original, result.getUuidAsString());
 		} catch (CommandSyntaxException e) {
-			original.sendError(new TranslatableComponent("error.cotton-scripting.syntax_exception", e.getMessage()));
+			original.sendError(new TranslatableText("error.cotton-scripting.syntax_exception", e.getMessage()));
 			return original;
 		}
 
@@ -161,7 +161,7 @@ public class ScriptTools {
 	private static EntitySelector createEntitySelector(String options, boolean playersOnly, boolean singleTarget) throws CommandSyntaxException {
 		StringReader reader = new StringReader(options);
 		EntitySelector selector = new EntitySelectorReader(reader).read();
-		if (selector.getCount() > 1 && singleTarget) {
+		if (selector.getLimit() > 1 && singleTarget) {
 			if (playersOnly) {
 				reader.setCursor(0);
 				throw EntityArgumentType.TOO_MANY_PLAYERS_EXCEPTION.createWithContext(reader);
