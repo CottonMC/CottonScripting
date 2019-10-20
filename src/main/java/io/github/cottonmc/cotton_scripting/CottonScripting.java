@@ -2,7 +2,7 @@ package io.github.cottonmc.cotton_scripting;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
+import io.github.cottonmc.cotton_scripting.ExecutableScript;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.fabricmc.api.ModInitializer;
@@ -10,15 +10,16 @@ import net.fabricmc.fabric.api.event.server.ServerTickCallback;
 import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.command.arguments.IdentifierArgumentType;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
-import javax.annotation.Nullable;
-import javax.script.*;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 import java.util.Collection;
 
 public class CottonScripting implements ModInitializer {
@@ -54,7 +55,7 @@ public class CottonScripting implements ModInitializer {
 						).then(CommandManager.literal("tag")
 								.then(CommandManager.argument("tag", IdentifierArgumentType.identifier())
 										.suggests(ScriptLoader.SCRIPT_TAG_SUGGESTIONS)
-										.executes(CottonScripting::runScriptTag)
+										.executes(io.github.cottonmc.cotton_scripting.CottonScripting::runScriptTag)
 								)
 						).then(CommandManager.literal("engines")
 								.then(CommandManager.literal("list")
@@ -84,16 +85,16 @@ public class CottonScripting implements ModInitializer {
 		));
 
 		ServerTickCallback.EVENT.register((server) -> {
-			for (Identifier id : ScriptTags.TICK.values()) {
+			for (ExecutableScript id : ScriptTags.TICK.values()) {
 				runScriptFromServer(id, server);
 			}
 		});
 	}
 
-	private static int runScript(CommandContext<ServerCommandSource> context, @Nullable String funcName, String... args) {
+	private static int runScript(CommandContext<ServerCommandSource> context, String funcName, String... args) {
 		Identifier scriptName = context.getArgument("script", Identifier.class);
 		String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.')+1);
-		String script = ScriptLoader.SCRIPTS.get(scriptName);
+		ExecutableScript script = ScriptLoader.SCRIPTS.get(scriptName);
 		if (script == null) {
 			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_script"));
 			return -1;
@@ -103,62 +104,26 @@ public class CottonScripting implements ModInitializer {
 			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_engine"));
 			return -1;
 		}
-		ScriptContext enginectx = engine.getContext();
-		CottonScriptContext scriptctx = new CottonScriptContext(context, scriptName, args);
-		enginectx.setAttribute("cotton_context", scriptctx, 100);
-		Object result;
 		try {
-			result = engine.eval(script, enginectx);
-			if (funcName != null) {
-				Invocable invocable = (Invocable) engine;
-				result = invocable.invokeFunction(funcName, scriptctx);
-			}
-		} catch (ScriptException e) {
-			context.getSource().sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
-			return -1;
-		} catch (NoSuchMethodException e) {
-			context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_function", funcName, scriptName));
-			return -1;
-		} catch (Throwable t) {
+			script.runMain(context.getSource());
+		}catch (Throwable t) {
 			context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 			return -1;
-		}
-		if (result != null) {
-			context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 		}
 		return 1;
 	}
 
 	private static int runScriptTag(CommandContext<ServerCommandSource> context) {
-		Collection<Identifier> scripts = ScriptTags.getContainer().getOrCreate(context.getArgument("tag", Identifier.class)).values();
+		Collection<ExecutableScript> scripts = ScriptTags.getContainer().getOrCreate(context.getArgument("tag", Identifier.class)).values();
 		int successful = 0;
-		for (Identifier scriptName : scripts) {
-			String extension = scriptName.getPath().substring(scriptName.getPath().lastIndexOf('.') + 1);
-			String script = ScriptLoader.SCRIPTS.get(scriptName);
-			if (script == null) {
-				context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_script"));
-				continue;
-			}
-			ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
-			if (engine == null) {
-				context.getSource().sendError(new TranslatableText("error.cotton-scripting.no_engine"));
-				continue;
-			}
-			Object result;
+		for (ExecutableScript scriptName : scripts) {
+						Object result;
 			try {
-				ScriptContext enginectx = engine.getContext();
-				CottonScriptContext scriptctx = new CottonScriptContext(context, scriptName);
-				enginectx.setAttribute("cotton_context", scriptctx, 100);
-				result = engine.eval(script);
-			} catch (ScriptException e) {
-				context.getSource().sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
-				continue;
-			} catch (Throwable t) {
+
+				scriptName.runMain(context.getSource());
+			}  catch (Throwable t) {
 				context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 				continue;
-			}
-			if (result != null) {
-				if (scripts.size() == 1) context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 			}
 			successful++;
 		}
@@ -166,34 +131,19 @@ public class CottonScripting implements ModInitializer {
 		return successful;
 	}
 
-	public static void runScriptFromServer(Identifier id, MinecraftServer server) {
+	public static void runScriptFromServer(ExecutableScript script, MinecraftServer server) {
 		ServerCommandSource source = server.getCommandSource();
-		String extension = id.getPath().substring(id.getPath().lastIndexOf('.') + 1);
-		String script = ScriptLoader.SCRIPTS.get(id);
+
 		if (script == null) {
 			source.sendError(new TranslatableText("error.cotton-scripting.no_script"));
 			return;
 		}
-		ScriptEngine engine = SCRIPT_MANAGER.getEngineByExtension(extension);
-		if (engine == null) {
-			source.sendError(new TranslatableText("error.cotton-scripting.no_engine"));
-			return;
-		}
-		Object result;
 		try {
-			ScriptContext enginectx = engine.getContext();
-			CottonScriptContext scriptctx = new CottonScriptContext(source, id);
-			enginectx.setAttribute("cotton_context", scriptctx, 100);
-			result = engine.eval(script);
-		} catch (ScriptException e) {
-			source.sendError(new TranslatableText("error.cotton-scripting.script_error", e.getMessage()));
-			return;
-		} catch (Throwable t) {
+			//CottonScriptContext scriptctx = new CottonScriptContext(source, id);
+
+			script.runMain(source);
+		}catch (Throwable t) {
 			source.sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
-			return;
-		}
-		if (result != null) {
-			source.sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package io.github.cottonmc.cotton_scripting.mixin;
 
 import io.github.cottonmc.cotton_scripting.CottonScripting;
+import io.github.cottonmc.cotton_scripting.ExecutableScript;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
@@ -15,7 +16,7 @@ public class MixinMinecraftServer {
 
 	@Inject(method = "reloadDataPacks", at = @At("TAIL"))
 	private void injectReloadScripts(LevelProperties props, CallbackInfo ci) {
-		for (Identifier id : ScriptTags.LOAD.values()) {
+		for (ExecutableScript id : ScriptTags.LOAD.values()) {
 			CottonScripting.runScriptFromServer(id, ((MinecraftServer)(Object)this));
 		}
 	}

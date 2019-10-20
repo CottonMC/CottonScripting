@@ -1,8 +1,9 @@
 package io.github.cottonmc.cotton_scripting.api;
 
 import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.impl.GlobalWorldStorage;
+import io.github.cottonmc.cotton_scripting.ExecutableScript;
 import io.github.cottonmc.cotton_scripting.impl.EntityWorldStorage;
+import io.github.cottonmc.cotton_scripting.impl.GlobalWorldStorage;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -35,7 +36,7 @@ public class WorldStorage {
 	 */
 	public static void setGlobalValue(ServerWorld world, String name, Object value) {
 		world.getPersistentStateManager().getOrCreate(GlobalWorldStorage::new, "global_world_storage").put(name, value);
-		for (Identifier id : ScriptTags.LISTEN.values()) {
+		for (ExecutableScript id : ScriptTags.LISTEN.values()) {
 			CottonScripting.runScriptFromServer(id, world.getServer());
 		}
 	}
@@ -64,7 +65,7 @@ public class WorldStorage {
 		if (source.getEntity() == null) throw new IllegalArgumentException("Must have an Entity to set a value for!");
 		String uuid = source.getEntity().getUuidAsString();
 		source.getWorld().getPersistentStateManager().getOrCreate(EntityWorldStorage::new, "entity_world_storage").put(name, uuid, value);
-		for (Identifier id : ScriptTags.LISTEN.values()) {
+		for (ExecutableScript id : ScriptTags.LISTEN.values()) {
 			CottonScripting.runScriptFromServer(id, source.getMinecraftServer());
 		}
 	}

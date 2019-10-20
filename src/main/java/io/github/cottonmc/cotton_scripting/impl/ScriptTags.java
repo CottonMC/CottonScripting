@@ -1,6 +1,7 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
 import io.github.cottonmc.cotton_scripting.CottonScripting;
+import io.github.cottonmc.cotton_scripting.ExecutableScript;
 import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagContainer;
 import net.minecraft.util.Identifier;
@@ -8,35 +9,35 @@ import net.minecraft.util.Identifier;
 import java.util.Collection;
 
 public class ScriptTags {
-	private static TagContainer<Identifier> container = new TagContainer<>(ScriptLoader::getScriptKey, "tags/scripts", true, "script");
+	private static TagContainer<ExecutableScript> container = new TagContainer<>(ScriptLoader::getScriptKey, "tags/scripts", true, "script");
 	private static int latestVersion;
 
-	public static final Tag<Identifier> LOAD = register(new Identifier(CottonScripting.MODID, "load"));
-	public static final Tag<Identifier> TICK = register(new Identifier(CottonScripting.MODID, "tick"));
-	public static final Tag<Identifier> LISTEN = register(new Identifier(CottonScripting.MODID, "listen"));
+	public static final Tag<ExecutableScript> LOAD = register(new Identifier(CottonScripting.MODID, "load"));
+	public static final Tag<ExecutableScript> TICK = register(new Identifier(CottonScripting.MODID, "tick"));
+	public static final Tag<ExecutableScript> LISTEN = register(new Identifier(CottonScripting.MODID, "listen"));
 
-	public static void setContainer(TagContainer<Identifier> id) {
+	public static void setContainer(TagContainer<ExecutableScript> id) {
 		container = id;
 		++latestVersion;
 	}
 
-	public static TagContainer<Identifier> getContainer() {
+	public static TagContainer<ExecutableScript> getContainer() {
 		return container;
 	}
 
-	public static Tag<Identifier> register(Identifier id) {
+	public static Tag<ExecutableScript> register(Identifier id) {
 		return new CachingTag(id);
 	}
 
-	static class CachingTag extends Tag<Identifier> {
+	static class CachingTag extends Tag<ExecutableScript> {
 		private int version = -1;
-		private Tag<Identifier> delegate;
+		private Tag<ExecutableScript> delegate;
 
 		public CachingTag(Identifier id) {
 			super(id);
 		}
 
-		public boolean containsTag(Identifier id) {
+		public boolean contains(ExecutableScript id) {
 			if (this.version != latestVersion) {
 				this.delegate = container.getOrCreate(this.getId());
 				this.version = latestVersion;
@@ -45,7 +46,7 @@ public class ScriptTags {
 			return this.delegate.contains(id);
 		}
 
-		public Collection<Identifier> values() {
+		public Collection<ExecutableScript> values() {
 			if (this.version != latestVersion) {
 				this.delegate = container.getOrCreate(this.getId());
 				this.version = latestVersion;
@@ -54,7 +55,7 @@ public class ScriptTags {
 			return this.delegate.values();
 		}
 
-		public Collection<Entry<Identifier>> entries() {
+		public Collection<Entry<ExecutableScript>> entries() {
 			if (this.version != latestVersion) {
 				this.delegate = container.getOrCreate(this.getId());
 				this.version = latestVersion;
