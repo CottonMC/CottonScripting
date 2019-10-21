@@ -1,7 +1,6 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
 import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
 import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagContainer;
 import net.minecraft.util.Identifier;

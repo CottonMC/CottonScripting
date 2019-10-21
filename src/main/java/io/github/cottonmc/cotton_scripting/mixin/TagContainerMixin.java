@@ -1,6 +1,6 @@
 package io.github.cottonmc.cotton_scripting.mixin;
 
-import io.github.cottonmc.cotton_scripting.TagContainerAccessor;
+import io.github.cottonmc.cotton_scripting.impl.TagContainerAccessor;
 import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagContainer;
 import net.minecraft.util.Identifier;

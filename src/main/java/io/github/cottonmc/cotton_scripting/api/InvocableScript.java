@@ -1,6 +1,6 @@
 package io.github.cottonmc.cotton_scripting.api;
 
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
+import io.github.cottonmc.cotton_scripting.impl.ExecutableScript;
 import net.minecraft.util.Identifier;
 
 import javax.script.Invocable;

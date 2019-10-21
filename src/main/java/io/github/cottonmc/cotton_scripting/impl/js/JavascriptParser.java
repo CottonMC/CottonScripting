@@ -1,7 +1,7 @@
 package io.github.cottonmc.cotton_scripting.impl.js;
 
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
-import io.github.cottonmc.cotton_scripting.ScriptParser;
+import io.github.cottonmc.cotton_scripting.impl.ExecutableScript;
+import io.github.cottonmc.cotton_scripting.impl.ScriptParser;
 import io.github.cottonmc.cotton_scripting.api.InvocableScript;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.minecraft.util.Identifier;
@@ -16,7 +16,7 @@ public class JavascriptParser implements ScriptParser {
     private final NashornScriptEngineFactory nashornScriptEngineFactory = new NashornScriptEngineFactory();
 
     @Override
-    public Optional<ExecutableScript> parse(String script,Identifier identifier){
+    public Optional<ExecutableScript> parse(String script, Identifier identifier){
         ScriptEngine engine = nashornScriptEngineFactory.getScriptEngine(new JavascriptClassFilter());
 
         try {

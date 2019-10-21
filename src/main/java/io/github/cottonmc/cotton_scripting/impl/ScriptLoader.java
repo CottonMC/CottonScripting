@@ -3,9 +3,6 @@ package io.github.cottonmc.cotton_scripting.impl;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
-import io.github.cottonmc.cotton_scripting.ScriptParser;
-import io.github.cottonmc.cotton_scripting.TagContainerAccessor;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.resource.Resource;
@@ -60,7 +57,7 @@ public class ScriptLoader implements SimpleResourceReloadListener {
 
                     for (ScriptParser parser : parsers) {
                         if (parser.canParse(scriptId)) {
-                            Optional<ExecutableScript> parsed = parser.parse(script);
+                            Optional<ExecutableScript> parsed = parser.parse(script,scriptId);
                             parsed.ifPresent(executableScript -> SCRIPTS.put(scriptId, executableScript));
                             break;
                         }

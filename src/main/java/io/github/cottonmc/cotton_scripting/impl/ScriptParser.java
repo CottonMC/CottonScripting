@@ -1,11 +1,7 @@
-package io.github.cottonmc.cotton_scripting;
+package io.github.cottonmc.cotton_scripting.impl;
 
-import io.github.cottonmc.cotton_scripting.api.ScriptApiObject;
 import net.minecraft.util.Identifier;
 
-import javax.script.Bindings;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import java.util.Optional;
 
 public interface ScriptParser {

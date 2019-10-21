@@ -1,10 +1,9 @@
 package io.github.cottonmc.cotton_scripting.mixin;
 
 import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
+import io.github.cottonmc.cotton_scripting.impl.ExecutableScript;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.level.LevelProperties;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

@@ -1,4 +1,4 @@
-package io.github.cottonmc.cotton_scripting;
+package io.github.cottonmc.cotton_scripting.impl;
 
 import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
 import net.minecraft.util.Identifier;

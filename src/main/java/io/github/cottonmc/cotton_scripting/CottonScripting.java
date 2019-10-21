@@ -2,7 +2,8 @@ package io.github.cottonmc.cotton_scripting;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import io.github.cottonmc.cotton_scripting.ExecutableScript;
+import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
+import io.github.cottonmc.cotton_scripting.impl.ExecutableScript;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import net.fabricmc.api.ModInitializer;
@@ -105,7 +106,7 @@ public class CottonScripting implements ModInitializer {
 			return -1;
 		}
 		try {
-			script.runMain(context.getSource());
+			script.runMain(new CottonScriptContext(context.getSource(),script.getID()));
 		}catch (Throwable t) {
 			context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 			return -1;
@@ -116,11 +117,11 @@ public class CottonScripting implements ModInitializer {
 	private static int runScriptTag(CommandContext<ServerCommandSource> context) {
 		Collection<ExecutableScript> scripts = ScriptTags.getContainer().getOrCreate(context.getArgument("tag", Identifier.class)).values();
 		int successful = 0;
-		for (ExecutableScript scriptName : scripts) {
+		for (ExecutableScript script : scripts) {
 						Object result;
 			try {
 
-				scriptName.runMain(context.getSource());
+				script.runMain(new CottonScriptContext(context.getSource(),script.getID()));
 			}  catch (Throwable t) {
 				context.getSource().sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 				continue;
@@ -141,7 +142,7 @@ public class CottonScripting implements ModInitializer {
 		try {
 			//CottonScriptContext scriptctx = new CottonScriptContext(source, id);
 
-			script.runMain(source);
+			script.runMain(new CottonScriptContext(source,script.getID()));
 		}catch (Throwable t) {
 			source.sendError(new TranslatableText("error.cotton-scripting.unknown_error", t.getMessage()));
 		}
