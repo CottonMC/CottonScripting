@@ -18,7 +18,7 @@ public interface ScriptParser {
      * @return an optional that may contain something that can be executed.
      *
      * */
-    Optional<ExecutableScript> parse(String script);
+    Optional<ExecutableScript> parse(String script, Identifier identifier);
 
     /**
      * returns true if this identifier (with file extension) is valid for this engine.

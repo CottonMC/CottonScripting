@@ -33,21 +33,21 @@ public class CottonScriptContext {
 	private Identifier script;
 	private String[] arguments;
 
-	public CottonScriptContext(CommandContext<ServerCommandSource> context, Identifier script, String...arguments) {
+	public CottonScriptContext(CommandContext<ServerCommandSource> context, Identifier identifier, String...arguments) {
 		this.commandContext = context;
 		this.commandSource = context.getSource();
 		this.commandWorld = context.getSource().getWorld();
 		this.commandPosition = new BlockPos(context.getSource().getPosition());
-		this.script = script;
+		this.script = identifier;
 		this.arguments = arguments;
 	}
 
-	public CottonScriptContext(ServerCommandSource source, Identifier script, String...arguments) {
+	public CottonScriptContext(ServerCommandSource source, Identifier identifier, String...arguments) {
 		this.commandContext = null;
 		this.commandSource = source;
 		this.commandWorld = source.getWorld();
 		this.commandPosition = new BlockPos(source.getPosition());
-		this.script = script;
+		this.script = identifier;
 		this.arguments = arguments;
 	}
 

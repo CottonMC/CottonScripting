@@ -1,27 +1,36 @@
 package io.github.cottonmc.cotton_scripting.api;
 
 import io.github.cottonmc.cotton_scripting.ExecutableScript;
-import net.minecraft.server.command.CommandSource;
+import net.minecraft.util.Identifier;
 
 import javax.script.Invocable;
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 public class InvocableScript implements ExecutableScript {
 
-    private final Invocable invocable;
+    private final ScriptEngine invocable;
+    private final Identifier identifier;
 
-    public InvocableScript(Invocable invocable) {
-        this.invocable = invocable;
+
+    public InvocableScript(ScriptEngine engine, Identifier identifier) {
+        this.invocable = engine;
+        this.identifier = identifier;
     }
 
     @Override
-    public boolean runMain(CommandSource commandSource) {
+    public boolean runMain(CottonScriptContext commandSource) {
         try {
-            invocable.invokeFunction("main",commandSource);
+            ((Invocable)invocable).invokeFunction("main",commandSource);
             return true;
         } catch (ScriptException | NoSuchMethodException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public Identifier getID() {
+        return identifier;
     }
 }

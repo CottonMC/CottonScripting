@@ -16,7 +16,7 @@ public class JavascriptParser implements ScriptParser {
     private final NashornScriptEngineFactory nashornScriptEngineFactory = new NashornScriptEngineFactory();
 
     @Override
-    public Optional<ExecutableScript> parse(String script){
+    public Optional<ExecutableScript> parse(String script,Identifier identifier){
         ScriptEngine engine = nashornScriptEngineFactory.getScriptEngine(new JavascriptClassFilter());
 
         try {
@@ -33,7 +33,7 @@ public class JavascriptParser implements ScriptParser {
                     return Optional.empty();
                 }
 
-                return Optional.of(new InvocableScript((Invocable) engine));
+                return Optional.of(new InvocableScript(engine,identifier));
             }
         } catch (ScriptException e) {
             e.printStackTrace();

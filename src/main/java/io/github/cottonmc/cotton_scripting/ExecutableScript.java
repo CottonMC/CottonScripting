@@ -1,6 +1,7 @@
 package io.github.cottonmc.cotton_scripting;
 
-import net.minecraft.server.command.CommandSource;
+import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
+import net.minecraft.util.Identifier;
 
 public interface ExecutableScript {
 
@@ -9,6 +10,8 @@ public interface ExecutableScript {
      *
      * @return false, if the script has errored.
      * */
-    boolean runMain(CommandSource commandSource);
+    boolean runMain(CottonScriptContext commandSource);
+
+    public Identifier getID();
 
 }

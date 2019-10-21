@@ -55,7 +55,7 @@ public class CottonScripting implements ModInitializer {
 						).then(CommandManager.literal("tag")
 								.then(CommandManager.argument("tag", IdentifierArgumentType.identifier())
 										.suggests(ScriptLoader.SCRIPT_TAG_SUGGESTIONS)
-										.executes(io.github.cottonmc.cotton_scripting.CottonScripting::runScriptTag)
+										.executes(CottonScripting::runScriptTag)
 								)
 						).then(CommandManager.literal("engines")
 								.then(CommandManager.literal("list")

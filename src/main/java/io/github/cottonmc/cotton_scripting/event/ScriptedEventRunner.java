@@ -1,6 +1,7 @@
 package io.github.cottonmc.cotton_scripting.event;
 
 import io.github.cottonmc.cotton_scripting.ExecutableScript;
+import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
 import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
 import io.github.cottonmc.functionapi.api.EventRunner;
 
@@ -23,8 +24,9 @@ public class ScriptedEventRunner implements EventRunner<MinecraftServer, ServerC
     @Override
     public void fire(ServerCommandSource serverCommandSource) {
         reload(serverCommandSource.getMinecraftServer());
+
         for (ExecutableScript script : scripts) {
-            script.runMain(serverCommandSource);
+            script.runMain(new CottonScriptContext(serverCommandSource,script.getID()));
         }
     }
 
