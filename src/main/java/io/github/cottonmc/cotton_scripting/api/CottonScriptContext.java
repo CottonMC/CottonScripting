@@ -18,37 +18,46 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import javax.script.CompiledScript;
 
 /**
  * An object storing various context about how a script was called.
  * REMEMBER: Any Minecraft classes will be obfuscated in a production environment! Don't call Minecraft classes or methods from scripts!
  * Running vanilla commands will do most of you would want to do for you.
  * If you *absolutely* need to use MC classes, write a plugin mod.
+ * TODO: big changes for cotton scripting 2.0
  */
 public class CottonScriptContext {
+	private CompiledScript script;
 	private CommandContext<ServerCommandSource> commandContext;
 	private ServerCommandSource commandSource;
 	private ServerWorld commandWorld;
 	private BlockPos commandPosition;
-	private Identifier script;
-	private String[] arguments;
+	private Identifier scriptId;
 
-	public CottonScriptContext(CommandContext<ServerCommandSource> context, Identifier script, String...arguments) {
+	public CottonScriptContext(CompiledScript script, Identifier scriptId) {
+		this.script = script;
+		this.scriptId = scriptId;
+	}
+
+	public CompiledScript getScript() {
+		return script;
+	}
+
+	public CottonScriptContext withContext(CommandContext<ServerCommandSource> context) {
 		this.commandContext = context;
 		this.commandSource = context.getSource();
 		this.commandWorld = context.getSource().getWorld();
 		this.commandPosition = new BlockPos(context.getSource().getPosition());
-		this.script = script;
-		this.arguments = arguments;
+		return this;
 	}
 
-	public CottonScriptContext(ServerCommandSource source, Identifier script, String...arguments) {
+	public CottonScriptContext withSource(ServerCommandSource source) {
 		this.commandContext = null;
 		this.commandSource = source;
 		this.commandWorld = source.getWorld();
 		this.commandPosition = new BlockPos(source.getPosition());
-		this.script = script;
-		this.arguments = arguments;
+		return this;
 	}
 
 	/**
@@ -92,7 +101,7 @@ public class CottonScriptContext {
 	 * @return The ID of the dimension a script was called from.
 	 */
 	public String getCommandDimension() {
-		return Registry.DIMENSION.getId(commandWorld.dimension.getType()).toString();
+		return Registry.DIMENSION_TYPE.getId(commandWorld.dimension.getType()).toString();
 	}
 
 	/**
@@ -109,13 +118,6 @@ public class CottonScriptContext {
 	 */
 	public int[] getCommandPosition() {
 		return new int[]{commandPosition.getX(), commandPosition.getY(), commandPosition.getZ()};
-	}
-
-	/**
-	 * @return The comma-separated arguments passed by a caller.
-	 */
-	public String[] getArguments() {
-		return arguments;
 	}
 
 	/**
@@ -152,8 +154,8 @@ public class CottonScriptContext {
 						Vec2f.ZERO,
 						commandWorld,
 						2,
-						script.toString(),
-						new LiteralText(script.toString()),
+						scriptId.toString(),
+						new LiteralText(scriptId.toString()),
 						commandWorld.getServer(),
 						null)
 						.withConsumer(((context, success, result) -> {
@@ -165,7 +167,7 @@ public class CottonScriptContext {
 				CrashReportSection executed = report.addElement("Command to be executed");
 				executed.add("Command", command);
 				CrashReportSection caller = report.addElement("Script command called from");
-				caller.add("Script ID", this.script.toString());
+				caller.add("Script ID", this.scriptId.toString());
 				throw new CrashException(report);
 			}
 			return successful[0];

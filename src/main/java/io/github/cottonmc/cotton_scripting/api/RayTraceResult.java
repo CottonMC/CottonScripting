@@ -72,9 +72,9 @@ public class RayTraceResult {
 	public Map<String, String> getProperties() {
 		Map<String, String> properties = new HashMap<>();
 		Collection<Property<?>> props = state.getProperties();
-		for (Property prop : props) {
+		for (Property<?> prop : props) {
 			String name = prop.getName();
-			Optional<?> value = prop.getValue(name);
+			Optional<?> value = prop.parse(name);
 			Object res = "";
 			if (value.isPresent()) res = value.get();
 			properties.put(name, res.toString());

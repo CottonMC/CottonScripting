@@ -1,17 +1,21 @@
 package io.github.cottonmc.cotton_scripting.api;
 
-import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.impl.GlobalWorldStorage;
-import io.github.cottonmc.cotton_scripting.impl.EntityWorldStorage;
-import io.github.cottonmc.cotton_scripting.impl.ScriptTags;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-
 import javax.annotation.Nullable;
 
+import io.github.cottonmc.cotton_scripting.CottonScripting;
+import io.github.cottonmc.cotton_scripting.impl.EntityWorldStorage;
+import io.github.cottonmc.cotton_scripting.impl.GlobalWorldStorage;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.function.CommandFunction;
+import net.minecraft.server.function.CommandFunctionManager;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.tag.Tag;
+import net.minecraft.util.Identifier;
+
 /**
- * A tool to ead and write persistent data for the world and entities.
+ * A tool to read and write persistent data for the world and entities.
  */
 public class WorldStorage {
 
@@ -35,9 +39,7 @@ public class WorldStorage {
 	 */
 	public static void setGlobalValue(ServerWorld world, String name, Object value) {
 		world.getPersistentStateManager().getOrCreate(GlobalWorldStorage::new, "global_world_storage").put(name, value);
-		for (Identifier id : ScriptTags.LISTEN.values()) {
-			CottonScripting.runScriptFromServer(id, world.getServer());
-		}
+		listen(world.getServer());
 	}
 
 	/**
@@ -64,8 +66,18 @@ public class WorldStorage {
 		if (source.getEntity() == null) throw new IllegalArgumentException("Must have an Entity to set a value for!");
 		String uuid = source.getEntity().getUuidAsString();
 		source.getWorld().getPersistentStateManager().getOrCreate(EntityWorldStorage::new, "entity_world_storage").put(name, uuid, value);
-		for (Identifier id : ScriptTags.LISTEN.values()) {
-			CottonScripting.runScriptFromServer(id, source.getMinecraftServer());
+		listen(source.getMinecraftServer(), source);
+	}
+
+	private static void listen(MinecraftServer server) {
+		listen(server, server.getCommandSource());
+	}
+
+	private static void listen(MinecraftServer server, ServerCommandSource source) {
+		CommandFunctionManager manager = server.getCommandFunctionManager();
+		Tag<CommandFunction> listenTag = manager.getTags().getOrCreate(new Identifier(CottonScripting.MODID, "storage_listen"));
+		for (CommandFunction command : listenTag.values()) {
+			manager.execute(command, source);
 		}
 	}
 }

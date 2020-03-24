@@ -30,7 +30,7 @@ public class GlobalWorldStorage extends PersistentState {
 	public void fromTag(CompoundTag compoundTag) {
 		values.clear();
 		for (String value : compoundTag.getKeys()) {
-			Tag tag = compoundTag.getTag(value);
+			Tag tag = compoundTag.get(value);
 			switch(tag.getType()) {
 				case NbtType.BYTE:
 					values.put(value, compoundTag.getBoolean(value));

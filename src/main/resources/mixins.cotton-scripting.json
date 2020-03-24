@@ -3,6 +3,6 @@
   "package": "io.github.cottonmc.cotton_scripting.mixin",
   "compatibilityLevel": "JAVA_8",
   "client": [
-    "MixinMinecraftServer"
+    "MixinCommandFunctionManager"
   ]
 }

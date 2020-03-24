@@ -38,7 +38,7 @@ public class EntityWorldStorage extends PersistentState {
 				CompoundTag valueTag = compoundTag.getCompound(name);
 				Map<String, Object> value = new HashMap<>();
 				for (String entity : valueTag.getKeys()) {
-					Tag tag = valueTag.getTag(entity);
+					Tag tag = valueTag.get(entity);
 					switch(tag.getType()) {
 						case NbtType.BYTE:
 							value.put(entity, compoundTag.getBoolean(entity));
