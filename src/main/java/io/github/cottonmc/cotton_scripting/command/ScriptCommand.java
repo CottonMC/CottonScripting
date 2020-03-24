@@ -16,6 +16,10 @@ public class ScriptCommand implements Command<ServerCommandSource> {
 	public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
 		try {
 			Identifier id = context.getArgument("script", Identifier.class);
+			if (!ScriptLoader.INSTANCE.containsScript(id)) {
+				context.getSource().sendError(new TranslatableText("result.cotton-scripting.no_script"));
+				return -1;
+			}
 			Object result = ScriptLoader.INSTANCE.runScript(id, context);
 			if (result != null) {
 				context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);

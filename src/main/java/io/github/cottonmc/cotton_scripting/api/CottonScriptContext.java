@@ -113,6 +113,10 @@ public class CottonScriptContext {
 		return caller.getUuidAsString();
 	}
 
+	public String getCallerName() {
+		return commandSource.getName();
+	}
+
 	/**
 	 * @return The X, Y, and Z position that a script was called at. Will be [0, 0, 0] if run from the server or a tick/load tag.
 	 */

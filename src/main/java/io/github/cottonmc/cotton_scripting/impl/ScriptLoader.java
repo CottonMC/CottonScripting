@@ -78,28 +78,34 @@ public class ScriptLoader {
 					if (script.equals("")) return null;
 					ScriptEngine engine = CottonScripting.SCRIPT_MANAGER.getEngineByExtension(extension);
 					if (engine == null) {
+						System.out.println("Script engine doesn't exist");
 						LOGGER.error("Script engine for extension {} doesn't exist", extension);
 						return null;
 					}
 					if (engine instanceof Compilable && engine instanceof Invocable) {
 						try {
+							System.out.println("Compiling " + scriptId);
 							CompiledScript compiled = ((Compilable)engine).compile(script);
 							SCRIPTS.put(scriptId, new CottonScriptContext(compiled, scriptId));
+							System.out.println(SCRIPTS.keySet().toString());
 							List<String> commands = Collections.singletonList("script " + scriptId.toString());
-							LOGGER.info("Creating command for {}", id);
 							return CommandFunction.create(id, funcManager, commands);
 						} catch (ScriptException e) {
+							System.out.println("Script encountered error while compiling");
 							LOGGER.error("Script {} encountered an error while compiling: {}", scriptId, e.getMessage());
 							return null;
 						}
 					} else {
+						System.out.println("Engine is invalid");
 						LOGGER.error("Script engine for extension {} is not both compilable and invocable", extension);
 						return null;
 					}
 				}, funcManager.getServer().getWorkerExecutor()).handle((function, throwable) -> {
-					LOGGER.info("Handling {}", function.getId());
 					if (function != null) return handler.load(function, throwable, id);
-					return null;
+					else {
+						LOGGER.error("Script {} turned up null! That shouldn't happen", id);
+						return null;
+					}
 				}));
 			} catch (IOException e) {
 				LOGGER.error("Could not load resource {}: {}", id, e.getMessage());
@@ -112,6 +118,7 @@ public class ScriptLoader {
 		try {
 			return IOUtils.toString(res.getInputStream(), Charset.defaultCharset());
 		} catch (IOException e) {
+			System.out.println("IO exception");
 			return "";
 		}
 	}
@@ -170,6 +177,10 @@ public class ScriptLoader {
 //			}
 //		});
 //	}
+
+	public boolean containsScript(Identifier script) {
+		return SCRIPTS.containsKey(script);
+	}
 
 	public int getScriptCount() {
 		return SCRIPTS.size();

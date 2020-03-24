@@ -17,6 +17,9 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RayTraceContext;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -135,6 +138,23 @@ public class ScriptTools {
 				entity.getDisplayName().asString(), entity.getDisplayName(),
 				entity.getEntityWorld().getServer(),
 				entity);
+	}
+
+	public static ServerCommandSource[] getExecutorsFromSelector(ServerCommandSource original, String options) {
+
+		EntitySelector selector;
+		try {
+			selector = createEntitySelector(options, false, false);
+			List<? extends Entity> result = selector.getEntities(original);
+			List<ServerCommandSource> sources = new ArrayList<>();
+			for (Entity e : result) {
+				sources.add(getExecutorFromUuid(original, e.getUuidAsString()));
+			}
+			return sources.toArray(new ServerCommandSource[0]);
+		} catch (CommandSyntaxException e) {
+			original.sendError(new TranslatableText("error.cotton-scripting.syntax_exception", e.getMessage()));
+			return new ServerCommandSource[]{original};
+		}
 	}
 
 	/**
