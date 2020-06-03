@@ -18,7 +18,7 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-import javax.script.CompiledScript;
+import javax.script.CompiledScript; //TODO: Upgrade to Parchment
 
 /**
  * An object storing various context about how a script was called.
@@ -28,7 +28,7 @@ import javax.script.CompiledScript;
  * TODO: big changes for cotton scripting 2.0
  */
 public class CottonScriptContext {
-	private CompiledScript script;
+	private CompiledScript script; //TODO: Upgrade to Parchment
 	private CommandContext<ServerCommandSource> commandContext;
 	private ServerCommandSource commandSource;
 	private ServerWorld commandWorld;
@@ -51,7 +51,7 @@ public class CottonScriptContext {
 		this.commandPosition = new BlockPos(context.getSource().getPosition());
 		return this;
 	}
-
+	
 	public CottonScriptContext withSource(ServerCommandSource source) {
 		this.commandContext = null;
 		this.commandSource = source;
