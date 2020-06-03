@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+//TODO: Upgrade to Parchment
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
@@ -49,6 +50,7 @@ public class ScriptLoader {
 	}
 
 	public Object runScript(Identifier id, CommandContext<ServerCommandSource> context) throws ScriptException {
+		//TODO: Upgrade to Parchment
 		CottonScriptContext scriptctx = getScript(id);
 		CompiledScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
@@ -57,6 +59,7 @@ public class ScriptLoader {
 	}
 
 	public Object runScript(Identifier id, ServerCommandSource source) throws ScriptException {
+		//TODO: Upgrade to Parchment
 		CottonScriptContext scriptctx = getScript(id);
 		CompiledScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();

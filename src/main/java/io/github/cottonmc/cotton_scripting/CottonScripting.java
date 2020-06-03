@@ -1,5 +1,6 @@
 package io.github.cottonmc.cotton_scripting;
 
+//TODO: Upgrade to Parchment
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
@@ -20,7 +21,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 public class CottonScripting implements ModInitializer {
 
 	public static final String MODID = "cotton-scripting";
-	public static final ScriptEngineManager SCRIPT_MANAGER = new ScriptEngineManager();
+	public static final ScriptEngineManager SCRIPT_MANAGER = new ScriptEngineManager(); //TODO: Upgrade to Parchment
 
 	@Override
 	public void onInitialize() {
