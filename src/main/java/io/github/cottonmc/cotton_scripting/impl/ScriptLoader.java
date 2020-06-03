@@ -38,7 +38,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.function.CommandFunctionManager;
 import net.minecraft.util.Identifier;
-import sun.java2d.pipe.SpanShapeRenderer;
 
 import javax.script.*;
 

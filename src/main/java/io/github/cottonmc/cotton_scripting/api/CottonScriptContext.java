@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import io.github.cottonmc.parchment.api.CompilableScript;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.command.CommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -21,10 +22,6 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
-//import javax.script.CompiledScript;
-
-import io.github.cottonmc.parchment.*;
-import sun.jvm.hotspot.opto.Compile;
 
 /**
  * An object storing various context about how a script was called.
@@ -81,6 +78,8 @@ public class CottonScriptContext {
 	/**
 	 * DO NOT CALL FROM SCRIPT. Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The vanilla command context a script-call command was run with.
+	 * @see CommandContext
+	 * @see ServerCommandSource
 	 */
 	@Nullable
 	public CommandContext<ServerCommandSource> getCommandContext() {
@@ -90,6 +89,7 @@ public class CottonScriptContext {
 	/**
 	 * DO NOT CALL FROM SCRIPT. Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The source that ran a script-call command.
+	 * @see ServerCommandSource
 	 */
 	public ServerCommandSource getCommandSource() {
 		return commandSource;
@@ -98,6 +98,7 @@ public class CottonScriptContext {
 	/**
 	 * DO NOT CALL FROM SCRIPT. Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The world that a script-call command was run from.
+	 * @deprecated Deprecated since 2.0.0
 	 */
 	public World getCommandWorld() {
 		return commandWorld;
@@ -105,6 +106,7 @@ public class CottonScriptContext {
 
 	/**
 	 * @return The ID of the dimension a script was called from.
+	 * @deprecated Deprecated since 2.0.0
 	 */
 	public String getCommandDimension() {
 		return Registry.DIMENSION_TYPE.getId(commandWorld.dimension.getType()).toString();
@@ -112,19 +114,25 @@ public class CottonScriptContext {
 
 	/**
 	 * @return The UUID of the entity that called a script. Returns an empty string if the entity is null (like a command block)
+	 * @deprecated Deprecated since 2.0.0
 	 */
 	public String getCallerUuid() {
 		Entity caller = commandSource.getEntity();
 		if (caller == null) return "";
 		return caller.getUuidAsString();
 	}
-
+	
+	/**
+	 * @return The name of the entity that called the script.
+	 * @deprecated Deprecated since 2.0.0
+	 */
 	public String getCallerName() {
 		return commandSource.getName();
 	}
 
 	/**
 	 * @return The X, Y, and Z position that a script was called at. Will be [0, 0, 0] if run from the server or a tick/load tag.
+	 * @deprecated Deprecated since 2.0.0
 	 */
 	public int[] getCommandPosition() {
 		return new int[]{commandPosition.getX(), commandPosition.getY(), commandPosition.getZ()};
