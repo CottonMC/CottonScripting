@@ -2,6 +2,7 @@ package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
+import io.github.cottonmc.parchment.api.CompilableScript;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +19,12 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-import javax.script.CompiledScript; //TODO: Upgrade to Parchment
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+//import javax.script.CompiledScript;
+
+import io.github.cottonmc.parchment.*;
+import sun.jvm.hotspot.opto.Compile;
 
 /**
  * An object storing various context about how a script was called.
@@ -28,19 +34,19 @@ import javax.script.CompiledScript; //TODO: Upgrade to Parchment
  * TODO: big changes for cotton scripting 2.0
  */
 public class CottonScriptContext {
-	private CompiledScript script; //TODO: Upgrade to Parchment
+	private CompilableScript script;
 	private CommandContext<ServerCommandSource> commandContext;
 	private ServerCommandSource commandSource;
 	private ServerWorld commandWorld;
 	private BlockPos commandPosition;
 	private Identifier scriptId;
 
-	public CottonScriptContext(CompiledScript script, Identifier scriptId) {
+	public CottonScriptContext(CompilableScript script, Identifier scriptId) {
 		this.script = script;
 		this.scriptId = scriptId;
 	}
 
-	public CompiledScript getScript() {
+	public CompilableScript getScript() {
 		return script;
 	}
 

@@ -10,18 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-//TODO: Upgrade to Parchment
-import javax.script.Compilable;
+/*import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.ScriptException;*/
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
 import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
+import io.github.cottonmc.parchment.api.CompilableScript;
+import io.github.cottonmc.parchment.api.InvocableScript;
+import io.github.cottonmc.parchment.api.Script;
+import io.github.cottonmc.parchment.api.SimpleCompilableScript;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +38,9 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.function.CommandFunctionManager;
 import net.minecraft.util.Identifier;
+import sun.java2d.pipe.SpanShapeRenderer;
+
+import javax.script.*;
 
 public class ScriptLoader {
 	public static final ScriptLoader INSTANCE = new ScriptLoader();
@@ -50,23 +56,21 @@ public class ScriptLoader {
 	}
 
 	public Object runScript(Identifier id, CommandContext<ServerCommandSource> context) throws ScriptException {
-		//TODO: Upgrade to Parchment
 		CottonScriptContext scriptctx = getScript(id);
-		CompiledScript script = scriptctx.getScript();
+		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
 		enginectx.setAttribute("cotton_context", scriptctx.withContext(context), 100);
-		return script.eval(enginectx);
+		return script.getEngine().eval(script.getContents(), enginectx);
 	}
 
 	public Object runScript(Identifier id, ServerCommandSource source) throws ScriptException {
-		//TODO: Upgrade to Parchment
 		CottonScriptContext scriptctx = getScript(id);
-		CompiledScript script = scriptctx.getScript();
+		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
 		enginectx.setAttribute("cotton_context", scriptctx.withSource(source), 100);
-		return script.eval(enginectx);
+		return script.getEngine().eval(script.getContents(), enginectx);
 	}
-
+	
 	public List<CompletableFuture<CommandFunction>> load(ResourceManager manager, CommandFunctionManager funcManager, ScriptApplier handler) {
 		SCRIPTS.clear();
 		List<CompletableFuture<CommandFunction>> futures = new ArrayList<>();
@@ -88,12 +92,12 @@ public class ScriptLoader {
 					if (engine instanceof Compilable && engine instanceof Invocable) {
 						try {
 							System.out.println("Compiling " + scriptId);
-							CompiledScript compiled = ((Compilable)engine).compile(script);
+							SimpleCompilableScript compiled = new SimpleCompilableScript(engine, scriptId, script);
 							SCRIPTS.put(scriptId, new CottonScriptContext(compiled, scriptId));
 							System.out.println(SCRIPTS.keySet().toString());
 							List<String> commands = Collections.singletonList("script " + scriptId.toString());
 							return CommandFunction.create(id, funcManager, commands);
-						} catch (ScriptException e) {
+						} catch(Exception e) {
 							System.out.println("Script encountered error while compiling");
 							LOGGER.error("Script {} encountered an error while compiling: {}", scriptId, e.getMessage());
 							return null;
