@@ -2,7 +2,6 @@ package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.api.entity.EntitySource;
-import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import io.github.cottonmc.parchment.api.CompilableScript;
 import net.minecraft.server.MinecraftServer;
@@ -28,12 +27,12 @@ import javax.annotation.Nullable;
  * TODO: Register game events (block break, item used, block placed, etc.), check if there are any event listeners, then bind the listeners to their events.
  */
 public class CottonScriptContext {
-	private CompilableScript script;
-	private CommandContext<ServerCommandSource> commandContext;
-	private ServerCommandSource commandSource;
-	private ServerWorld commandWorld;
-	private BlockPos commandPosition;
-	private Identifier scriptId;
+	protected CompilableScript script;
+	protected CommandContext<ServerCommandSource> commandContext;
+	protected ServerCommandSource commandSource;
+	protected ServerWorld commandWorld;
+	protected BlockPos commandPosition;
+	protected Identifier scriptId;
 
 	public CottonScriptContext(CompilableScript script, Identifier scriptId) {
 		this.script = script;

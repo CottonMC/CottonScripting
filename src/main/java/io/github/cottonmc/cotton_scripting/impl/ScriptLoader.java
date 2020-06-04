@@ -1,5 +1,6 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
+import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
@@ -8,6 +9,7 @@ import io.github.cottonmc.cotton_scripting.api.ScriptTools;
 import io.github.cottonmc.cotton_scripting.api.WorldStorage;
 import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.entity.EntitySource;
+import io.github.cottonmc.cotton_scripting.api.server.MinecraftServer;
 import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.parchment.api.CompilableScript;
@@ -33,19 +35,25 @@ import java.util.concurrent.CompletableFuture;
 
 public class ScriptLoader {
 	public static final ScriptLoader INSTANCE = new ScriptLoader();
-	public static final int PATH_PREFIX_LENGTH = "scripts/".length();
+	public static final String RESOURCE_TYPE = "scripts";
+	public static final int PATH_PREFIX_LENGTH = RESOURCE_TYPE.length() + 1;
 	public static final Logger LOGGER = LogManager.getLogger();
 
-	private Map<Identifier, CottonScriptContext> SCRIPTS = new HashMap<>();
-	public SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "scripts"),
+	private static Map<Identifier, CottonScriptContext> SCRIPTS = new HashMap<>();
+	public static SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "scripts"),
 			(context, builder) -> CommandSource.suggestIdentifiers(SCRIPTS.keySet(), builder));
-	private String globalContext = "cotton";
-	private Map<String, Object> globals = new HashMap<>();
-	private String[] globalKeys = {"EntitySource", "Entity", "Dimension", "World", "ScriptTools", "WorldStorage"};
-	private Object[] globalObjects = {EntitySource.class, Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
+	
+	// Globals
+	private static final String GLOBAL_CONTEXT = "cotton";
+	private static final int GLOBAL_SCOPE = 100;
+	private Map<String, Object> globals = new HashMap<>(); // Make sure this is an instance field so it can be initialized
+	private static final String[] globalKeys = {"EntitySource", "Entity", "Dimension", "World", "ScriptTools", "WorldStorage"};
+	private static final Object[] globalObjects = {EntitySource.class, Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
 	
 	public void initializeGlobals(String[] k, Object[] v) {
-		//TODO: Initialize global variables
+		for (int i = 0; i < globalKeys.length; i++) {
+			globals.put(globalKeys[i], globalObjects[i]);
+		}
 	}
 
 	public CottonScriptContext getScript(Identifier id) {
@@ -56,7 +64,15 @@ public class ScriptLoader {
 		CottonScriptContext scriptctx = getScript(id);
 		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
-		enginectx.setAttribute(globalContext, scriptctx.withContext(context), 100);
+		
+		enginectx.setAttribute(GLOBAL_CONTEXT, scriptctx.withContext(context), GLOBAL_SCOPE);
+		
+		// Iterate through every global object
+		globals.forEach((k, v) -> {
+			// Set the global attribute "k" to the value "v"
+			enginectx.setAttribute(k, v, GLOBAL_SCOPE);
+		});
+		
 		return script.getEngine().eval(script.getContents(), enginectx);
 	}
 
@@ -64,7 +80,15 @@ public class ScriptLoader {
 		CottonScriptContext scriptctx = getScript(id);
 		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
-		enginectx.setAttribute(globalContext, scriptctx.withSource(source), 100);
+		
+		enginectx.setAttribute(GLOBAL_CONTEXT, scriptctx.withSource(source), GLOBAL_SCOPE);
+		
+		// Iterate through every global object
+		globals.forEach((k, v) -> {
+			// Set the global attribute "k" to the value "v"
+			enginectx.setAttribute(k, v, GLOBAL_SCOPE);
+		});
+		
 		return script.getEngine().eval(script.getContents(), enginectx);
 	}
 	
