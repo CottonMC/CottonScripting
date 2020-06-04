@@ -1,3 +1,5 @@
+import org.codehaus.groovy.runtime.GStringImpl
+
 plugins {
 	id "java"
 	id "eclipse"
@@ -17,6 +19,8 @@ if(rootProject.file("private.gradle").exists()) { //Publishing details
 archivesBaseName = "${project.archives_base_name}"
 group = "${project.maven_group}"
 version = "${project.mod_version}+${project.minecraft_version}"
+parchment_version = "${project.parchment_version}+${project.minecraft_version}" as GStringImpl
+parchment_approx_version = "${project.parchment_approx_version}+${project.minecraft_version}" as GStringImpl
 
 minecraft {
 }
