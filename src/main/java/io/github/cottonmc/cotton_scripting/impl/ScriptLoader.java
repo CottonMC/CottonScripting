@@ -73,7 +73,7 @@ public class ScriptLoader {
 			enginectx.setAttribute(k, v, GLOBAL_SCOPE);
 		});
 		
-		return script.getEngine().eval(script.getContents(), enginectx);
+		return Objects.requireNonNull(script.getCompiledScript()).eval(enginectx);
 	}
 
 	public Object runScript(Identifier id, ServerCommandSource source) throws ScriptException {
@@ -89,7 +89,7 @@ public class ScriptLoader {
 			enginectx.setAttribute(k, v, GLOBAL_SCOPE);
 		});
 		
-		return script.getEngine().eval(script.getContents(), enginectx);
+		return Objects.requireNonNull(script.getCompiledScript()).eval(enginectx);
 	}
 	
 	public List<CompletableFuture<CommandFunction>> load(ResourceManager manager, CommandFunctionManager funcManager, ScriptApplier handler) {
