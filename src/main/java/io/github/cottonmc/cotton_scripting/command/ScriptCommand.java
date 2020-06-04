@@ -1,15 +1,14 @@
 package io.github.cottonmc.cotton_scripting.command;
 
-import javax.script.ScriptException;
-
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
-
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+
+import javax.script.ScriptException;
 
 public class ScriptCommand implements Command<ServerCommandSource> {
 	@Override

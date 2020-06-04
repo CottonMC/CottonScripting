@@ -1,13 +1,10 @@
 package io.github.cottonmc.cotton_scripting.mixin;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-import javax.annotation.Nullable;
-
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.server.function.CommandFunction;
+import net.minecraft.server.function.CommandFunctionManager;
+import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,10 +12,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.server.function.CommandFunction;
-import net.minecraft.server.function.CommandFunctionManager;
-import net.minecraft.util.Identifier;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Mixin(CommandFunctionManager.class)
 public abstract class MixinCommandFunctionManager {

@@ -1,34 +1,17 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-/*import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;*/
-
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
 import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
+import io.github.cottonmc.cotton_scripting.api.ScriptTools;
+import io.github.cottonmc.cotton_scripting.api.WorldStorage;
+import io.github.cottonmc.cotton_scripting.api.entity.Entity;
+import io.github.cottonmc.cotton_scripting.api.entity.EntitySource;
+import io.github.cottonmc.cotton_scripting.api.world.Dimension;
+import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.parchment.api.CompilableScript;
-import io.github.cottonmc.parchment.api.InvocableScript;
-import io.github.cottonmc.parchment.api.Script;
 import io.github.cottonmc.parchment.api.SimpleCompilableScript;
-import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceImpl;
@@ -38,8 +21,15 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.function.CommandFunctionManager;
 import net.minecraft.util.Identifier;
+import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.script.*;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class ScriptLoader {
 	public static final ScriptLoader INSTANCE = new ScriptLoader();
@@ -49,6 +39,14 @@ public class ScriptLoader {
 	private Map<Identifier, CottonScriptContext> SCRIPTS = new HashMap<>();
 	public SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, "scripts"),
 			(context, builder) -> CommandSource.suggestIdentifiers(SCRIPTS.keySet(), builder));
+	private String globalContext = "cotton";
+	private Map<String, Object> globals = new HashMap<>();
+	private String[] globalKeys = {"EntitySource", "Entity", "Dimension", "World", "ScriptTools", "WorldStorage"};
+	private Object[] globalObjects = {EntitySource.class, Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
+	
+	public void initializeGlobals(String[] k, Object[] v) {
+		//TODO: Initialize global variables
+	}
 
 	public CottonScriptContext getScript(Identifier id) {
 		return SCRIPTS.get(id);
@@ -58,7 +56,7 @@ public class ScriptLoader {
 		CottonScriptContext scriptctx = getScript(id);
 		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
-		enginectx.setAttribute("cotton_context", scriptctx.withContext(context), 100);
+		enginectx.setAttribute(globalContext, scriptctx.withContext(context), 100);
 		return script.getEngine().eval(script.getContents(), enginectx);
 	}
 
@@ -66,7 +64,7 @@ public class ScriptLoader {
 		CottonScriptContext scriptctx = getScript(id);
 		CompilableScript script = scriptctx.getScript();
 		ScriptContext enginectx = script.getEngine().getContext();
-		enginectx.setAttribute("cotton_context", scriptctx.withSource(source), 100);
+		enginectx.setAttribute(globalContext, scriptctx.withSource(source), 100);
 		return script.getEngine().eval(script.getContents(), enginectx);
 	}
 	

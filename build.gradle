@@ -29,12 +29,21 @@ repositories {
 }
 
 dependencies {
+	// Minecraft/Fabric
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.minecraft_version}+build.${project.yarn_build}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+	// Parchment
 	modImplementation "io.github.cottonmc:Parchment:${parchment_version}"
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok:1.18.12'
+	annotationProcessor 'org.projectlombok:lombok:1.18.12'
+	testCompileOnly 'org.projectlombok:lombok:1.18.12'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 }
 
 processResources {

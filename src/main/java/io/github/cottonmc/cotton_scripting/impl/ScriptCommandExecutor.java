@@ -1,7 +1,7 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
-import net.minecraft.text.Text;
 import net.minecraft.server.command.CommandOutput;
+import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 

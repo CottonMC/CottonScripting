@@ -1,21 +1,17 @@
 package io.github.cottonmc.cotton_scripting;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptEngineManager;
-
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.github.cottonmc.cotton_scripting.command.ScriptCommand;
 import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
-
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.registry.CommandRegistry;
 import net.minecraft.command.arguments.IdentifierArgumentType;
-import net.minecraft.resource.ResourceType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.text.TranslatableText;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.registry.CommandRegistry;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 
 public class CottonScripting implements ModInitializer {
 
@@ -25,7 +21,8 @@ public class CottonScripting implements ModInitializer {
 	@Override
 	public void onInitialize() {
 //		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ScriptLoader());
-
+		
+		//TODO: Update deprecated CommandRegistry
 		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
 						.then(CommandManager.argument("script", IdentifierArgumentType.identifier())
