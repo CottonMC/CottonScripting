@@ -19,10 +19,12 @@ public class World {
 		return new Dimension(world.getDimension());
 	}
 	
+	/**
+	 * Get player by their UUID.
+	 * @return {@code String} | UUID
+	 */
 	public Entity getPlayerByUuid(String Uuid) {
-		Entity player = new Entity(world.getPlayerByUuid(UUID.fromString(Uuid)));
-		
-		return player;
+		return new Entity(world.getPlayerByUuid(UUID.fromString(Uuid)));
 	}
 	
 	//TODO: Add more functionality
