@@ -25,7 +25,7 @@
   "requires": {
     "fabricloader": ">=0.4.0",
     "fabric": "*",
-    "parchment": "$parchment_approx_version"
+    "parchment": "$parch_approx_ver"
   },
   "custom": {
     "modmenu:api": true

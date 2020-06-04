@@ -1,5 +1,3 @@
-import org.codehaus.groovy.runtime.GStringImpl
-
 plugins {
 	id "java"
 	id "eclipse"
@@ -19,8 +17,9 @@ if(rootProject.file("private.gradle").exists()) { //Publishing details
 archivesBaseName = "${project.archives_base_name}"
 group = "${project.maven_group}"
 version = "${project.mod_version}+${project.minecraft_version}"
-parchment_version = "${project.parchment_version}+${project.minecraft_version}" as GStringImpl
-parchment_approx_version = "${project.parchment_approx_version}+${project.minecraft_version}" as GStringImpl
+
+// Parchment versions (for requiring in fabric.mod.json)
+String parch_ver = "${project.parchment_version}+${project.minecraft_version}"
 
 minecraft {
 }
@@ -41,7 +40,7 @@ dependencies {
 	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
 
 	// Parchment
-	modImplementation "io.github.cottonmc:Parchment:${parchment_version}"
+	modImplementation "io.github.cottonmc:Parchment:${parch_ver}"
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok:1.18.12'
@@ -52,9 +51,10 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
-	from(sourceSets.main.resources.srcDirs) {
+	inputs.property "parch_approx_ver", project.parchment_approx_version
+	AbstractCopyTask task = from(sourceSets.main.resources.srcDirs) {
 		include "fabric.mod.json"
-		expand version: project.version
+		expand version: project.version, parch_approx_ver: project.parchment_approx_version
 	}
 	from(sourceSets.main.resources.srcDirs) {
 		exclude "fabric.mod.json"
