@@ -2,6 +2,7 @@ package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
+import io.github.cottonmc.cotton_scripting.api.server.ServerSource;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import io.github.cottonmc.parchment.api.SimpleCompilableScript;

@@ -1,4 +1,4 @@
-package io.github.cottonmc.cotton_scripting.api;
+package io.github.cottonmc.cotton_scripting.api.server;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.cottonmc.cotton_scripting.api.entity.Entity;

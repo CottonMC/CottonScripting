@@ -1,6 +1,6 @@
 package io.github.cottonmc.cotton_scripting.api.entity;
 
-import io.github.cottonmc.cotton_scripting.api.ServerSource;
+import io.github.cottonmc.cotton_scripting.api.server.ServerSource;
 import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import net.minecraft.util.math.Vec3d;
