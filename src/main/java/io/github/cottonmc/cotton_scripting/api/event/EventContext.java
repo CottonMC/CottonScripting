@@ -1,10 +1,8 @@
 package io.github.cottonmc.cotton_scripting.api.event;
 
 import io.github.cottonmc.cotton_scripting.api.CottonScript;
-
 import net.minecraft.util.Identifier;
 
-import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 
 /**

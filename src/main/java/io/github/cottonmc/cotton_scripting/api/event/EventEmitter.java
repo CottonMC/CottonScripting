@@ -10,4 +10,6 @@ public class EventEmitter {
 	public void emit(String k, Function<Object, Object> v) {
 		events.put(k, v);
 	}
+	
+	//TODO: Add "on" method
 }
