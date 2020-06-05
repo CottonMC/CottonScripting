@@ -23,6 +23,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * An object storing various context about how a script was called.
@@ -32,14 +33,9 @@ import java.util.Map;
  * TODO: Register game events (block break, item used, block placed, etc.), check if there are any event listeners, then bind the listeners to their events.
  */
 public class CottonScript extends SimpleCompilableScript {
-	protected CommandContext<ServerCommandSource> context;
-	protected ServerSource source;
-	protected ServerWorld world;
-	protected BlockPos position;
-	protected Identifier scriptId;
-
-	private String errorMessage = "";
-
+	//Static Fields
+	// Global context key
+	private static final String GLOBAL_CONTEXT = "cotton";
 	// Define globals
 	private static Map<String, Object> globals = new HashMap<>();
 	static {
@@ -50,6 +46,15 @@ public class CottonScript extends SimpleCompilableScript {
 			globals.put(keys[i], values[i]);
 		}
 	}
+	
+	//Instance Fields
+	protected CommandContext<ServerCommandSource> context;
+	protected ServerSource source;
+	protected ServerWorld world;
+	protected BlockPos position;
+	protected Identifier scriptId;
+
+	private String errorMessage = "";
 
 	public CottonScript(ScriptEngine engine, Identifier name, String contents) {
 		super(engine, name, contents);
@@ -57,13 +62,17 @@ public class CottonScript extends SimpleCompilableScript {
 
 	@Override
 	public void run() {
+		// Add script context to globals
+		globals.put(GLOBAL_CONTEXT, this);
+		
 		// Iterate through every global object
 		globals.forEach((k, v) -> {
 			// Define a new variable with the Object's key and value
 			getEngine().getContext().setAttribute(k, v, ScriptContext.ENGINE_SCOPE);
 			//TODO: After Parchment update, change method above to script.setVar
 		});
-
+		
+		// Evaluate script
 		if (!hadCompileError) {
 			try {
 				compiled.eval();
@@ -87,12 +96,14 @@ public class CottonScript extends SimpleCompilableScript {
 	public CottonScript withContext(CommandContext<ServerCommandSource> ctx) {
 		context = ctx;
 		source = new ServerSource(ctx.getSource());
+		
 		return this;
 	}
 	
 	public CottonScript withSource(ServerCommandSource src) {
 		context = null;
 		source = new ServerSource(src);
+		
 		return this;
 	}
 
@@ -197,9 +208,11 @@ public class CottonScript extends SimpleCompilableScript {
 	 */
 	public boolean runCommand(String command) {
 		MinecraftServer server = source.getSource().getMinecraftServer();
+		
 		if (server.hasGameDir() && !ChatUtil.isEmpty(command)) {
 			//this is *very* ugly, but lambdas require finality, so what can ya do
 			final boolean[] successful = {false};
+			
 			try {
 				ServerCommandSource src = new ServerCommandSource(
 						new ScriptCommandExecutor(source.getSource().getWorld()),
@@ -220,7 +233,7 @@ public class CottonScript extends SimpleCompilableScript {
 				CrashReportSection executed = report.addElement("Command to be executed");
 				executed.add("Command", command);
 				CrashReportSection caller = report.addElement("Script command called from");
-				caller.add("Script ID", this.scriptId.toString());
+				caller.add("Script ID", scriptId.toString());
 				throw new CrashException(report);
 			}
 			return successful[0];

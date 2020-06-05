@@ -1,10 +1,12 @@
 package io.github.cottonmc.cotton_scripting.impl;
 
+import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.context.CommandContextBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
 import io.github.cottonmc.cotton_scripting.api.CottonScript;
-import io.github.cottonmc.parchment.api.ScriptLoader;
+import io.github.cottonmc.parchment.api.*;
 import net.minecraft.command.suggestion.SuggestionProviders;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceImpl;
@@ -18,9 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.script.Compilable;
-import javax.script.ScriptContext;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -40,26 +40,16 @@ public class CottonScriptLoader {
 	private Map<Identifier, CottonScript> SCRIPTS = new HashMap<>();
 	public SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, RESOURCE_TYPE),
 			(context, builder) -> CommandSource.suggestIdentifiers(SCRIPTS.keySet(), builder));
-	
-	// Globals
-	private static final String GLOBAL_CONTEXT = "cotton";
 
 	public CottonScript getScript(Identifier id) {
 		return SCRIPTS.get(id);
 	}
 
-	//TODO: move globals to `run`
 	public boolean runScript(Identifier id, CommandContext<ServerCommandSource> context) throws ScriptException {
 		// Script and script context
 		CottonScript script = getScript(id);
-		ScriptContext scriptContext = script.getEngine().getContext();
 		
-		// Define the global context
-		scriptContext.setAttribute(GLOBAL_CONTEXT, script.withContext(context), ScriptContext.ENGINE_SCOPE);
-
-
-		//TODO: After Parchment update, change method above to script.setVar
-		
+		script.withContext(context);
 		script.run();
 		return script.hadError();
 	}
@@ -67,13 +57,8 @@ public class CottonScriptLoader {
 	public boolean runScript(Identifier id, ServerCommandSource source) throws ScriptException {
 		// Script and script context
 		CottonScript script = getScript(id);
-		CottonScript scriptContext = (CottonScript) script.getEngine().getContext();
-		
-		// Define the global context
-		script.getEngine().getContext().setAttribute(GLOBAL_CONTEXT, scriptContext.withSource(source), ScriptContext.ENGINE_SCOPE);
-		//TODO: After Parchment update, change above method invocation to script.setVar
-		//MARK: Parchment update
 
+		script.withSource(source);
 		script.run();
 		return script.hadError();
 	}
@@ -89,19 +74,19 @@ public class CottonScriptLoader {
 			try {
 				Resource res = manager.getResource(id);
 				futures.add(CompletableFuture.supplyAsync(() -> readScript(res), ResourceImpl.RESOURCE_IO_EXECUTOR).thenApplyAsync(contents -> {
-					if (contents.equals("")) return null;
-
+					if (contents.equals("")) LOGGER.warn("Script {} is empty", scriptId.toString());
+					
 					CottonScript script = (CottonScript) ScriptLoader.INSTANCE.loadScript(COTTON_SCRIPT, scriptId, contents);
-
+					
 					if (script == null) {
 						LOGGER.error("Script engine for extension {} is not compilable", extension);
 						return null;
 					}
-
+					
 					SCRIPTS.put(scriptId, script);
-
+					
 					List<String> commands = Collections.singletonList("script " + scriptId.toString());
-
+					
 					// Create a new function (this script) and parse it as a script
 					return CommandFunction.create(id, funcManager, commands);
 				}, funcManager.getServer().getWorkerExecutor()).handle((function, throwable) -> { // More function magic
