@@ -55,7 +55,7 @@ public interface EntityInterface {
 	
 	/**
 	 * Get the entity's position.
-	 * @return {@link Vec3d Vec3d} | The entity's position.
+	 * @return {@link Vec3d} | The entity's position.
 	 */
 	Vec3d getPosition();
 }

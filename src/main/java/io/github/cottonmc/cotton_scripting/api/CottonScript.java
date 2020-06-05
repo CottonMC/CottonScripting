@@ -215,7 +215,7 @@ public class CottonScript extends SimpleCompilableScript {
 			try {
 				ServerCommandSource src = new ServerCommandSource(
 						new ScriptCommandExecutor(source.getSource().getWorld()),
-						source.getEntity().getPosition(),
+						source.getPosition(),
 						Vec2f.ZERO,
 						source.getSource().getWorld(),
 						2,

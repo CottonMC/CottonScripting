@@ -5,6 +5,7 @@ import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.util.math.Vec3d;
 
 import javax.annotation.Nullable;
 
@@ -81,6 +82,14 @@ public class ServerSource {
 		} else {
 			throw new EntityNotFoundException();
 		}
+	}
+	
+	/**
+	 * Get the source's position.
+	 * @return {@link Vec3d} | The source's position.
+	 */
+	public Vec3d getPosition() {
+		return source.getPosition();
 	}
 	
 	/**
