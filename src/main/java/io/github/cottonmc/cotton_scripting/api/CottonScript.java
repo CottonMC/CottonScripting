@@ -1,9 +1,7 @@
 package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
-import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
-import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import io.github.cottonmc.parchment.api.SimpleCompilableScript;
@@ -23,7 +21,6 @@ import net.minecraft.util.math.Vec3d;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -47,6 +44,7 @@ public class CottonScript extends SimpleCompilableScript {
 	static {
 		String[] keys =     {"WorldStorage", "ScriptTools"};
 		Object[] values =   {WorldStorage.class, ScriptTools.class};
+		
 		for (int i = 0; i < keys.length; i++) {
 			globals.put(keys[i], values[i]);
 		}
@@ -65,19 +63,19 @@ public class CottonScript extends SimpleCompilableScript {
 			//TODO: After Parchment update, change method above to script.setVar
 		});
 
-		if (!this.hadCompileError) {
+		if (!hadCompileError) {
 			try {
-				this.compiled.eval();
+				compiled.eval();
 			} catch (Exception e) {
-				this.getLogger().error("Script {} encountered error while running: {}", this.getId().toString(), e.getMessage());
+				getLogger().error("Script {} encountered error while running: {}", getId().toString(), e.getMessage());
 				e.printStackTrace();
-				this.errorMessage = e.getMessage();
-				this.hadError = true;
+				errorMessage = e.getMessage();
+				hadError = true;
 			}
 
 			this.hasRun = true;
 		} else {
-			this.getLogger().error("Script {} could not be run because it failed while compiling", this.getId().toString());
+			getLogger().error("Script {} could not be run because it failed while compiling", getId().toString());
 		}
 	}
 
