@@ -41,6 +41,7 @@ dependencies {
 
 	// Parchment
 	modImplementation "io.github.cottonmc:Parchment:${parch_ver}"
+	include "io.github.cottonmc:Parchment:${parch_ver}"
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok:1.18.12'
