@@ -2,9 +2,9 @@ package io.github.cottonmc.cotton_scripting;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.github.cottonmc.cotton_scripting.command.ScriptCommand;
-import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
+import io.github.cottonmc.cotton_scripting.impl.CottonScriptLoader;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.registry.CommandRegistry;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.command.arguments.IdentifierArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.text.TranslatableText;
@@ -22,11 +22,10 @@ public class CottonScripting implements ModInitializer {
 	public void onInitialize() {
 //		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ScriptLoader());
 		
-		//TODO: Update deprecated CommandRegistry
-		CommandRegistry.INSTANCE.register(false, dispatcher -> dispatcher.register((
+		CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> dispatcher.register((
 				CommandManager.literal("script").requires((source) -> source.hasPermissionLevel(2))
 						.then(CommandManager.argument("script", IdentifierArgumentType.identifier())
-								.suggests(ScriptLoader.INSTANCE.SCRIPT_SUGGESTIONS)
+								.suggests(CottonScriptLoader.INSTANCE.SCRIPT_SUGGESTIONS)
 								.executes(new ScriptCommand())
 						).then(CommandManager.literal("engines")
 								.then(CommandManager.literal("list")

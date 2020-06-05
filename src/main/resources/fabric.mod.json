@@ -22,10 +22,10 @@
   "mixins": [
     "mixins.cotton-scripting.json"
   ],
-  "requires": {
-    "fabricloader": ">=0.4.0",
+  "depends": {
+    "fabricloader": ">=0.5.2",
     "fabric": "*",
-    "parchment": "$parch_approx_ver"
+    "parchment": "1.x"
   },
   "custom": {
     "modmenu:api": true

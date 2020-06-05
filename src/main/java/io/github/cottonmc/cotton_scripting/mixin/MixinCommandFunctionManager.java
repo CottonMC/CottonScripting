@@ -1,6 +1,6 @@
 package io.github.cottonmc.cotton_scripting.mixin;
 
-import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
+import io.github.cottonmc.cotton_scripting.impl.CottonScriptLoader;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.server.function.CommandFunction;
 import net.minecraft.server.function.CommandFunctionManager;
@@ -43,7 +43,7 @@ public abstract class MixinCommandFunctionManager {
 	 */
 	@Redirect(method = "apply", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;allOf([Ljava/util/concurrent/CompletableFuture;)Ljava/util/concurrent/CompletableFuture;"))
 	private CompletableFuture<Void> rediretFutureApply(CompletableFuture<CommandFunction>[] futures, ResourceManager manager) {
-		List<CompletableFuture<CommandFunction>> scriptFutures = ScriptLoader.INSTANCE.load(manager, (CommandFunctionManager)(Object)this, this::load);
+		List<CompletableFuture<CommandFunction>> scriptFutures = CottonScriptLoader.INSTANCE.load(manager, (CommandFunctionManager)(Object)this, this::load);
 		scriptFutures.addAll(Arrays.asList(futures));
 		return CompletableFuture.allOf(scriptFutures.toArray(new CompletableFuture[0]));
 	}
@@ -55,7 +55,7 @@ public abstract class MixinCommandFunctionManager {
 	@Redirect(method = "apply", at = @At(value = "INVOKE", target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V", remap = false))
 	private void redirectLoadMessage(Logger logger, String message, Object arg) {
 		int totalCount = (Integer)arg;
-		int scriptCount = ScriptLoader.INSTANCE.getScriptCount();
+		int scriptCount = CottonScriptLoader.INSTANCE.getScriptCount();
 		int funcCount = totalCount - scriptCount;
 		if (funcCount > 0) logger.info("Loaded {} custom command functions", funcCount);
 		if (scriptCount > 0) logger.info("Loaded {} scripts", scriptCount);

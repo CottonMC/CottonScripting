@@ -2,8 +2,9 @@ package io.github.cottonmc.cotton_scripting.api.event;
 
 import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
 import io.github.cottonmc.parchment.api.CompilableScript;
-import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.util.Identifier;
+
+import javax.script.CompiledScript;
 
 /**
  * The
@@ -11,7 +12,7 @@ import net.minecraft.util.Identifier;
  * @extends {@link CottonScriptContext}
  */
 public class EventContext extends CottonScriptContext {
-	public EventContext(CompilableScript script, Identifier scriptId) {
+	public EventContext(CompiledScript script, Identifier scriptId) {
 		super(script, scriptId);
 	}
 	

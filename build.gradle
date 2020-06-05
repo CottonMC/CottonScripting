@@ -51,10 +51,9 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
-	inputs.property "parch_approx_ver", project.parchment_approx_version
 	AbstractCopyTask task = from(sourceSets.main.resources.srcDirs) {
 		include "fabric.mod.json"
-		expand version: project.version, parch_approx_ver: project.parchment_approx_version
+		expand version: project.version
 	}
 	from(sourceSets.main.resources.srcDirs) {
 		exclude "fabric.mod.json"

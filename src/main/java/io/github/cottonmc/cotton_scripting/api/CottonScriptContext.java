@@ -1,9 +1,10 @@
 package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
-import io.github.cottonmc.cotton_scripting.api.entity.EntitySource;
+import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
+import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
-import io.github.cottonmc.parchment.api.CompilableScript;
+import io.github.cottonmc.parchment.api.SimpleFullScript;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -15,9 +16,12 @@ import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 
 import javax.annotation.Nullable;
+import javax.script.CompiledScript;
+import java.util.Objects;
 
 /**
  * An object storing various context about how a script was called.
@@ -27,76 +31,55 @@ import javax.annotation.Nullable;
  * TODO: Register game events (block break, item used, block placed, etc.), check if there are any event listeners, then bind the listeners to their events.
  */
 public class CottonScriptContext {
-	protected CompilableScript script;
-	protected CommandContext<ServerCommandSource> commandContext;
-	protected ServerCommandSource commandSource;
-	protected ServerWorld commandWorld;
-	protected BlockPos commandPosition;
+	protected CompiledScript script;
+	protected SimpleFullScript fullScript;
+	protected CommandContext<ServerCommandSource> context;
+	protected ServerSource source;
+	protected ServerWorld world;
+	protected BlockPos position;
 	protected Identifier scriptId;
 
-	public CottonScriptContext(CompilableScript script, Identifier scriptId) {
+	public CottonScriptContext(CompiledScript script, Identifier scriptId) {
 		this.script = script;
 		this.scriptId = scriptId;
 	}
 
-	public CompilableScript getScript() {
+	public CompiledScript getScript() {
 		return script;
 	}
+	
+	public SimpleFullScript getFullScript() {
+		return fullScript;
+	}
 
-	public CottonScriptContext withContext(CommandContext<ServerCommandSource> context) {
-		this.commandContext = context;
-		this.commandSource = context.getSource();
-		this.commandWorld = context.getSource().getWorld();
-		this.commandPosition = new BlockPos(context.getSource().getPosition());
+	public CottonScriptContext withContext(CommandContext<ServerCommandSource> ctx) {
+		context = ctx;
+		source = new ServerSource(ctx.getSource());
 		return this;
 	}
 	
-	public CottonScriptContext withSource(ServerCommandSource source) {
-		this.commandContext = null;
-		this.commandSource = source;
-		this.commandWorld = source.getWorld();
-		this.commandPosition = new BlockPos(source.getPosition());
+	public CottonScriptContext withSource(ServerCommandSource src) {
+		context = null;
+		source = new ServerSource(src);
 		return this;
 	}
 
 	/**
 	 * Change the ServerCommandSource of this context.
-	 * @param source The source to set to.
+	 * @param src The source to set to.
 	 * @return This object with the source, world, and position changed to match the new source.
 	 */
-	public CottonScriptContext runBy(ServerCommandSource source) {
-		this.commandSource = source;
-		this.commandWorld = source.getWorld();
-		this.commandPosition = new BlockPos(source.getPosition());
+	public CottonScriptContext runBy(ServerSource src) {
+		source = src;
 		return this;
 	}
 
 	/**
-	 * <p style="font-weight:bold;font-size:120%">DO NOT CALL FROM SCRIPT.</p> Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
-	 * @return The vanilla command context a script-call command was run with.
-	 * @see CommandContext
-	 * @see ServerCommandSource
-	 */
-	@Nullable
-	public CommandContext<ServerCommandSource> getCommandContext() {
-		return commandContext;
-	}
-
-	/**
-	 * <p style="font-weight:bold;font-size:120%">DO NOT CALL FROM SCRIPT.</p> Only here for the sake of plug-ins. Pass this on to compiled methods ONLY.
 	 * @return The source that ran a script-call command.
-	 * @see ServerCommandSource
-	 * @see CottonScriptContext#getSource()
+	 * @see ServerSource
 	 */
-	public ServerCommandSource getCommandSource() {
-		return commandSource;
-	}
-	
-	/**
-	 * @return The source that ran a script-call command.
-	 */
-	public EntitySource getSource() {
-		return new EntitySource(commandSource);
+	public ServerSource getSource() {
+		return source;
 	}
 
 	/**
@@ -105,8 +88,8 @@ public class CottonScriptContext {
 	 * @deprecated since 2.0.0
 	 */
 	@Deprecated
-	public net.minecraft.world.World getCommandWorld() {
-		return commandWorld;
+	public World getCommandWorld() {
+		return source.getWorld();
 	}
 
 	/**
@@ -115,7 +98,7 @@ public class CottonScriptContext {
 	 */
 	@Deprecated
 	public String getCommandDimension() {
-		return Registry.DIMENSION_TYPE.getId(commandWorld.dimension.getType()).toString();
+		return source.getWorld().getDimension().getName();
 	}
 
 	/**
@@ -123,9 +106,8 @@ public class CottonScriptContext {
 	 * @deprecated since 2.0.0
 	 */
 	@Deprecated
-	public String getCallerUuid() {
-		io.github.cottonmc.cotton_scripting.api.entity.Entity caller = new io.github.cottonmc.cotton_scripting.api.entity.Entity(commandSource.getEntity());
-		return caller.getUuid();
+	public String getCallerUuid() throws EntityNotFoundException {
+		return source.getEntity().getUuid();
 	}
 	
 	/**
@@ -134,7 +116,7 @@ public class CottonScriptContext {
 	 */
 	@Deprecated
 	public String getCallerName() {
-		return commandSource.getName();
+		return source.getName();
 	}
 
 	/**
@@ -142,8 +124,10 @@ public class CottonScriptContext {
 	 * @deprecated since 2.0.0
 	 */
 	@Deprecated
-	public int[] getCommandPosition() {
-		return new int[]{commandPosition.getX(), commandPosition.getY(), commandPosition.getZ()};
+	public int[] getCommandPosition() throws EntityNotFoundException {
+		Vec3d pos = source.getEntity().getPosition();
+		
+		return new int[]{(int) pos.getX(), (int) pos.getY(), (int) pos.getZ()};
 	}
 
 	/**
@@ -153,7 +137,7 @@ public class CottonScriptContext {
 	 * @param sendToStatusBar If false, this will appear in the caller's chat box.
 	 */
 	public void sendFeedback(String feedback, boolean sendToStatusBar) {
-		commandSource.sendFeedback(new LiteralText(feedback), sendToStatusBar);
+		source.getSource().sendFeedback(new LiteralText(feedback), sendToStatusBar);
 	}
 	
 	/**
@@ -171,7 +155,7 @@ public class CottonScriptContext {
 	 * @param error The message to send.
 	 */
 	public void sendError(String error) {
-		commandSource.sendError(new LiteralText(error));
+		source.getSource().sendError(new LiteralText(error));
 	}
 
 	/**
@@ -180,25 +164,25 @@ public class CottonScriptContext {
 	 * @return Whether the command returned successfully.
 	 */
 	public boolean runCommand(String command) {
-		MinecraftServer server = commandWorld.getServer();
+		MinecraftServer server = source.getSource().getMinecraftServer();
 		if (server.hasGameDir() && !ChatUtil.isEmpty(command)) {
 			//this is *very* ugly, but lambdas require finality, so what can ya do
 			final boolean[] successful = {false};
 			try {
-				ServerCommandSource source = new ServerCommandSource(
-						new ScriptCommandExecutor(commandSource.getWorld()),
-						commandSource.getPosition(),
+				ServerCommandSource src = new ServerCommandSource(
+						new ScriptCommandExecutor(source.getSource().getWorld()),
+						source.getEntity().getPosition(),
 						Vec2f.ZERO,
-						commandWorld,
+						source.getSource().getWorld(),
 						2,
 						scriptId.toString(),
 						new LiteralText(scriptId.toString()),
-						commandWorld.getServer(),
+						source.getSource().getMinecraftServer(),
 						null)
 						.withConsumer(((context, success, result) -> {
 							if (success) successful[0] = true;
 						}));
-				server.getCommandManager().execute(source, command);
+				server.getCommandManager().execute(source.getSource(), command);
 			} catch (Throwable t) {
 				CrashReport report = CrashReport.create(t, "Executing command from script");
 				CrashReportSection executed = report.addElement("Command to be executed");

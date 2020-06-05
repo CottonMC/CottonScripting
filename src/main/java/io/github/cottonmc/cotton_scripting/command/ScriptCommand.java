@@ -3,7 +3,8 @@ package io.github.cottonmc.cotton_scripting.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.cottonmc.cotton_scripting.impl.ScriptLoader;
+import io.github.cottonmc.cotton_scripting.api.ServerSource;
+import io.github.cottonmc.cotton_scripting.impl.CottonScriptLoader;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -15,11 +16,11 @@ public class ScriptCommand implements Command<ServerCommandSource> {
 	public int run(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
 		try {
 			Identifier id = context.getArgument("script", Identifier.class);
-			if (!ScriptLoader.INSTANCE.containsScript(id)) {
+			if (!CottonScriptLoader.INSTANCE.containsScript(id)) {
 				context.getSource().sendError(new TranslatableText("result.cotton-scripting.no_script"));
 				return -1;
 			}
-			Object result = ScriptLoader.INSTANCE.runScript(id, context);
+			Object result = CottonScriptLoader.INSTANCE.runScript(id, context);
 			if (result != null) {
 				context.getSource().sendFeedback(new TranslatableText("result.cotton-scripting.script_result", result), false);
 			}

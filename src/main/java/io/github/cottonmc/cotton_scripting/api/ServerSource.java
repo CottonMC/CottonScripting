@@ -1,14 +1,16 @@
-package io.github.cottonmc.cotton_scripting.api.entity;
+package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
 import io.github.cottonmc.cotton_scripting.api.world.World;
+import jdk.internal.jline.internal.Nullable;
 import net.minecraft.server.command.ServerCommandSource;
 
-public class EntitySource {
+public class ServerSource {
 	protected ServerCommandSource source;
 	
-	public EntitySource(ServerCommandSource src) {
+	public ServerSource(ServerCommandSource src) {
 		source = src;
 	}
 	
@@ -41,7 +43,7 @@ public class EntitySource {
 	}
 	
 	/**
-	 * Get name.
+	 * Get the source name.
 	 * @return {@code String} | Name.
 	 */
 	public String getName() {
@@ -49,7 +51,7 @@ public class EntitySource {
 	}
 	
 	/**
-	 * Get display name.
+	 * Get the source display name.
 	 * @return {@code String} | Display name.
 	 */
 	public String getDisplayName() {
@@ -57,15 +59,35 @@ public class EntitySource {
 	}
 	
 	/**
-	 * Get entity object.
+	 * Get the entity object.
 	 * @return {@link Entity} | Entity object.
-	 * @throws EntityNotFoundException Thrown when the source is not an entity or {@link ServerCommandSource#getEntity() source.getEntity()} returns null.
+	 * @see ServerSource#getEntityOrThrow()
 	 */
-	public Entity getEntity() throws EntityNotFoundException {
-		if (source.getEntity() != null) {
+	@Nullable
+	public Entity getEntity() {
+		return new Entity(source.getEntity());
+	}
+	
+	/**
+	 * Get the entity object or throw an error if null.
+	 * @return {@link Entity} | Entity object.
+	 * @see ServerSource#getEntity()
+	 * @throws EntityNotFoundException Thrown when the source is not an entity or {@link ServerCommandSource#getEntity()} throws an {@link EntityNotFoundException}.
+	 */
+	public Entity getEntityOrThrow() throws EntityNotFoundException {
+		if (isEntity()) {
 			return new Entity(source.getEntity());
 		} else {
 			throw new EntityNotFoundException();
 		}
+	}
+	
+	/**
+	 * <p style="font-weight:bold;font-size:120%">DO NOT CALL FROM SCRIPT.</p> Only here to be used by plug-ins and the CottonScripting API.
+	 * Get the source object.
+	 * @return {@link ServerCommandSource} | Source object.
+	 */
+	public ServerCommandSource getSource() {
+		return source;
 	}
 }
