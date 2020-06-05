@@ -3,7 +3,6 @@ package io.github.cottonmc.cotton_scripting.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.github.cottonmc.cotton_scripting.api.ServerSource;
 import io.github.cottonmc.cotton_scripting.impl.CottonScriptLoader;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.TranslatableText;

@@ -1,10 +1,10 @@
-package io.github.cottonmc.cotton_scripting.impl.entity;
+package io.github.cottonmc.cotton_scripting.api.entity;
 
 import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import net.minecraft.util.math.Vec3d;
 
-public interface EntityImpl {
+public interface EntityInterface {
 	/**
 	 * Returns a boolean which is true if the current source is an entity, otherwise false.
 	 * @return {@code boolean} | True if current source is an entity, otherwise false.

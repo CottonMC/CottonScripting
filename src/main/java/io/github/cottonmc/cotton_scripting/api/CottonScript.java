@@ -7,7 +7,6 @@ import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
 import io.github.cottonmc.parchment.api.SimpleCompilableScript;
-
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;

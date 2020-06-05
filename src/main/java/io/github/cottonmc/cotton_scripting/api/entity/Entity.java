@@ -3,11 +3,9 @@ package io.github.cottonmc.cotton_scripting.api.entity;
 import io.github.cottonmc.cotton_scripting.api.ServerSource;
 import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
-import io.github.cottonmc.cotton_scripting.impl.entity.EntityImpl;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.math.Vec3d;
 
-public class Entity extends ServerSource implements EntityImpl {
+public class Entity extends ServerSource implements EntityInterface {
 	protected net.minecraft.entity.Entity entity;
 	
 	public Entity(net.minecraft.entity.Entity ent) {
