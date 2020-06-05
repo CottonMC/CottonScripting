@@ -52,7 +52,6 @@ public class CottonScript extends SimpleCompilableScript {
 	protected ServerSource source;
 	protected ServerWorld world;
 	protected BlockPos position;
-	protected Identifier scriptId;
 
 	private String errorMessage = "";
 
@@ -220,20 +219,20 @@ public class CottonScript extends SimpleCompilableScript {
 						Vec2f.ZERO,
 						source.getSource().getWorld(),
 						2,
-						scriptId.toString(),
-						new LiteralText(scriptId.toString()),
+						getId().toString(),
+						new LiteralText(getId().toString()),
 						source.getSource().getMinecraftServer(),
 						null)
 						.withConsumer(((context, success, result) -> {
 							if (success) successful[0] = true;
 						}));
-				server.getCommandManager().execute(source.getSource(), command);
+				server.getCommandManager().execute(src, command);
 			} catch (Throwable t) {
 				CrashReport report = CrashReport.create(t, "Executing command from script");
 				CrashReportSection executed = report.addElement("Command to be executed");
 				executed.add("Command", command);
 				CrashReportSection caller = report.addElement("Script command called from");
-				caller.add("Script ID", scriptId.toString());
+				caller.add("Script ID", getId().toString());
 				throw new CrashException(report);
 			}
 			return successful[0];
