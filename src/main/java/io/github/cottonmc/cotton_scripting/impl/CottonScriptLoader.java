@@ -3,13 +3,7 @@ package io.github.cottonmc.cotton_scripting.impl;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import io.github.cottonmc.cotton_scripting.CottonScripting;
-import io.github.cottonmc.cotton_scripting.api.CottonScriptContext;
-import io.github.cottonmc.cotton_scripting.api.ScriptTools;
-import io.github.cottonmc.cotton_scripting.api.ServerSource;
-import io.github.cottonmc.cotton_scripting.api.WorldStorage;
-import io.github.cottonmc.cotton_scripting.api.entity.Entity;
-import io.github.cottonmc.cotton_scripting.api.world.Dimension;
-import io.github.cottonmc.cotton_scripting.api.world.World;
+import io.github.cottonmc.cotton_scripting.api.CottonScript;
 import io.github.cottonmc.parchment.api.*;
 import io.github.cottonmc.parchment.impl.ScriptLoaderImpl;
 import net.minecraft.command.suggestion.SuggestionProviders;
@@ -32,63 +26,55 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class CottonScriptLoader {
+	// ScriptLoader Instance
+	public static final CottonScriptLoader INSTANCE = new CottonScriptLoader();
+	
+	//loading info
 	public static final String RESOURCE_TYPE = "scripts";
 	public static final int PATH_PREFIX_LENGTH = RESOURCE_TYPE.length() + 1;
-	public static final Logger LOGGER = LogManager.getLogger();
+	public static final Logger LOGGER = LogManager.getLogger("Cotton Scripting");
+	public static final ScriptLoader.ScriptFactory COTTON_SCRIPT = (engine, id, contents) ->
+		!(engine instanceof Compilable) ? null : new CottonScript(engine, id, contents);
 
-	private Map<Identifier, CottonScriptContext> SCRIPTS = new HashMap<>();
+	private Map<Identifier, CottonScript> SCRIPTS = new HashMap<>();
 	public SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = SuggestionProviders.register(new Identifier(CottonScripting.MODID, RESOURCE_TYPE),
 			(context, builder) -> CommandSource.suggestIdentifiers(SCRIPTS.keySet(), builder));
 	
 	// Globals
 	private static final String GLOBAL_CONTEXT = "cotton";
-	private static final int GLOBAL_SCOPE = 100;
-	private static final Object[] globals = {Entity.class, Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
-	
-	// ScriptLoader Instance
-	public static final CottonScriptLoader INSTANCE = new CottonScriptLoader();
 
-	public SimpleFullScript getScript(Identifier id) {
-		return SCRIPTS.get(id).getFullScript();
+	public CottonScript getScript(Identifier id) {
+		return SCRIPTS.get(id);
 	}
 
-	public Object runScript(Identifier id, CommandContext<ServerCommandSource> context) throws ScriptException {
+	//TODO: move globals to `run`
+	public boolean runScript(Identifier id, CommandContext<ServerCommandSource> context) throws ScriptException {
 		// Script and script context
-		SimpleFullScript script = getScript(id);
-		CottonScriptContext scriptContext = (CottonScriptContext) script.getEngine().getContext();
+		CottonScript script = getScript(id);
+		ScriptContext scriptContext = script.getEngine().getContext();
 		
 		// Define the global context
-		script.getEngine().getContext().setAttribute(GLOBAL_CONTEXT, scriptContext.withContext(context), GLOBAL_SCOPE);
+		scriptContext.setAttribute(GLOBAL_CONTEXT, script.withContext(context), ScriptContext.ENGINE_SCOPE);
+
+
 		//TODO: After Parchment update, change method above to script.setVar
 		
-		// Iterate through every global object
-		for (Object c : globals) {
-			// Define a new variable with the current Object's name and
-			script.getEngine().getContext().setAttribute(c.getClass().getName(), c, GLOBAL_SCOPE);
-			//TODO: After Parchment update, change method above to script.setVar
-		}
-		
-		return script.getCompiledScript();
+		script.run();
+		return script.hadError();
 	}
 
-	public Object runScript(Identifier id, ServerCommandSource source) throws ScriptException {
+	public boolean runScript(Identifier id, ServerCommandSource source) throws ScriptException {
 		// Script and script context
-		SimpleFullScript script = getScript(id);
-		CottonScriptContext scriptContext = (CottonScriptContext) script.getEngine().getContext();
+		CottonScript script = getScript(id);
+		CottonScript scriptContext = (CottonScript) script.getEngine().getContext();
 		
 		// Define the global context
-		script.getEngine().getContext().setAttribute(GLOBAL_CONTEXT, scriptContext.withSource(source), GLOBAL_SCOPE);
+		script.getEngine().getContext().setAttribute(GLOBAL_CONTEXT, scriptContext.withSource(source), ScriptContext.ENGINE_SCOPE);
 		//TODO: After Parchment update, change above method invocation to script.setVar
 		//MARK: Parchment update
-		
-		// Iterate through every global object
-		for (Object c : globals) {
-			// Define a new variable with the current Object's name and
-			script.getEngine().getContext().setAttribute(c.getClass().getName(), c, GLOBAL_SCOPE);
-			//MARK: Parchment update
-		}
-		
-		return script.getCompiledScript();
+
+		script.run();
+		return script.hadError();
 	}
 	
 	public List<CompletableFuture<CommandFunction>> load(ResourceManager manager, CommandFunctionManager funcManager, ScriptApplier handler) {
@@ -101,41 +87,22 @@ public class CottonScriptLoader {
 			Identifier scriptId = new Identifier(id.getNamespace(), path.substring(PATH_PREFIX_LENGTH));
 			try {
 				Resource res = manager.getResource(id);
-				futures.add(CompletableFuture.supplyAsync(() -> parseScript(res), ResourceImpl.RESOURCE_IO_EXECUTOR).thenApplyAsync(script -> {
-					if (script.equals("")) return null;
-					
-					// Parchment stuff
-					Script partScript = ScriptLoaderImpl.INSTANCE.loadScript(ScriptLoader.ScriptFactory.SIMPLE_FULL, scriptId, script); // Partial script
-					
-					// Check if partScript exists
-					if (partScript == null) {
-						System.out.println("Script engine doesn't exist");
-						LOGGER.error("Script engine for extension {} doesn't exist", extension);
+				futures.add(CompletableFuture.supplyAsync(() -> readScript(res), ResourceImpl.RESOURCE_IO_EXECUTOR).thenApplyAsync(contents -> {
+					if (contents.equals("")) return null;
+
+					CottonScript script = (CottonScript) ScriptLoader.INSTANCE.loadScript(COTTON_SCRIPT, scriptId, contents);
+
+					if (script == null) {
+						LOGGER.error("Script engine for extension {} is not compilable", extension);
 						return null;
 					}
-					
-					SimpleFullScript fullScript = new SimpleFullScript(partScript.getEngine(), partScript.getId(), partScript.getContents()); // Full script
-					
-					// Compile script
-					try {
-						System.out.println("Compiling " + scriptId);
-						
-						// Store compiled script in variable
-						CompiledScript compiled =  fullScript.getCompiledScript();
-						
-						// Add script to scripts map
-						SCRIPTS.put(scriptId, new CottonScriptContext(compiled, scriptId));
-						System.out.println(SCRIPTS.keySet().toString());
-						
-						List<String> commands = Collections.singletonList("script " + scriptId.toString());
-						
-						// Create a new function (this script) and parse it as a script
-						return CommandFunction.create(id, funcManager, commands);
-					} catch(Exception e) {
-						System.out.println("Script encountered error while compiling");
-						LOGGER.error("Script {} encountered an error while compiling: {}", scriptId, e.getMessage());
-						return null;
-					}
+
+					SCRIPTS.put(scriptId, script);
+
+					List<String> commands = Collections.singletonList("script " + scriptId.toString());
+
+					// Create a new function (this script) and parse it as a script
+					return CommandFunction.create(id, funcManager, commands);
 				}, funcManager.getServer().getWorkerExecutor()).handle((function, throwable) -> { // More function magic
 					if (function != null) return handler.load(function, throwable, id);
 					else {
@@ -150,11 +117,11 @@ public class CottonScriptLoader {
 		return futures;
 	}
 
-	private String parseScript(Resource res) {
+	private String readScript(Resource res) {
 		try {
 			return IOUtils.toString(res.getInputStream(), Charset.defaultCharset());
 		} catch (IOException e) {
-			System.out.println("IO exception");
+			LOGGER.info("IO exception");
 			return "";
 		}
 	}
@@ -193,7 +160,7 @@ public class CottonScriptLoader {
 //				String extension = id.getPath().substring(id.getPath().lastIndexOf('.')+1);
 //				ScriptEngine engine = CottonScripting.SCRIPT_MANAGER.getEngineByExtension(extension);
 //				if (!(engine instanceof Compilable) || !(engine instanceof Invocable)) {
-//					System.out.println("Script engine is not compilable or is not invocable!");
+//					LOGGER.info("Script engine is not compilable or is not invocable!");
 //					continue;
 //				}
 //				try {
@@ -201,13 +168,13 @@ public class CottonScriptLoader {
 //					SCRIPTS.put(id, new CottonScriptContext(script, id));
 //					if (funcManager != null) {
 //						String path = id.getPath();
-//						System.out.println("path");
+//						LOGGER.info("path");
 //						Identifier newId = new Identifier(id.getNamespace(), "scripts/" + path.substring(PATH_PREFIX_LENGTH, path.length() - extension.length()));
 //						List<String> commands = Collections.singletonList("script " + id.toString());
 //						((CommandFunctionManagerAccessor)funcManager).invokeLoad(CommandFunction.create(newId, funcManager, commands), null, id);
 //					}
 //				} catch (ScriptException e) {
-//					System.out.println("Encountered a script exception!");
+//					LOGGER.info("Encountered a script exception!");
 //					e.printStackTrace();
 //				}
 //			}

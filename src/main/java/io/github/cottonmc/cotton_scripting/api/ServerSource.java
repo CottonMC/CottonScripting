@@ -1,10 +1,11 @@
 package io.github.cottonmc.cotton_scripting.api;
 
+import javax.annotation.Nullable;
+
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
 import io.github.cottonmc.cotton_scripting.api.world.World;
-import jdk.internal.jline.internal.Nullable;
 import net.minecraft.server.command.ServerCommandSource;
 
 public class ServerSource {

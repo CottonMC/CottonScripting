@@ -1,10 +1,13 @@
 package io.github.cottonmc.cotton_scripting.api;
 
 import com.mojang.brigadier.context.CommandContext;
+import io.github.cottonmc.cotton_scripting.api.entity.Entity;
 import io.github.cottonmc.cotton_scripting.api.exception.EntityNotFoundException;
+import io.github.cottonmc.cotton_scripting.api.world.Dimension;
 import io.github.cottonmc.cotton_scripting.api.world.World;
 import io.github.cottonmc.cotton_scripting.impl.ScriptCommandExecutor;
-import io.github.cottonmc.parchment.api.SimpleFullScript;
+import io.github.cottonmc.parchment.api.SimpleCompilableScript;
+
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
@@ -17,11 +20,9 @@ import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 
-import javax.annotation.Nullable;
-import javax.script.CompiledScript;
-import java.util.Objects;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
 
 /**
  * An object storing various context about how a script was called.
@@ -30,35 +31,57 @@ import java.util.Objects;
  * If you *absolutely* need to use MC classes, write a plugin mod.
  * TODO: Register game events (block break, item used, block placed, etc.), check if there are any event listeners, then bind the listeners to their events.
  */
-public class CottonScriptContext {
-	protected CompiledScript script;
-	protected SimpleFullScript fullScript;
+public class CottonScript extends SimpleCompilableScript {
 	protected CommandContext<ServerCommandSource> context;
 	protected ServerSource source;
 	protected ServerWorld world;
 	protected BlockPos position;
 	protected Identifier scriptId;
 
-	public CottonScriptContext(CompiledScript script, Identifier scriptId) {
-		this.script = script;
-		this.scriptId = scriptId;
+	private String errorMessage = "";
+
+	private static final Object[] globals = {Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
+
+	public CottonScript(ScriptEngine engine, Identifier name, String contents) {
+		super(engine, name, contents);
 	}
 
-	public CompiledScript getScript() {
-		return script;
-	}
-	
-	public SimpleFullScript getFullScript() {
-		return fullScript;
+	@Override
+	public void run() {
+		// Iterate through every global object
+		for (Object c : globals) {
+			// Define a new variable with the current Object's name and
+			getEngine().getContext().setAttribute(c.getClass().getName(), c, ScriptContext.ENGINE_SCOPE);
+			//TODO: After Parchment update, change method above to script.setVar
+		}
+
+		if (!this.hadCompileError) {
+			try {
+				this.compiled.eval();
+			} catch (Exception e) {
+				this.getLogger().error("Script {} encountered error while running: {}", this.getId().toString(), e.getMessage());
+				e.printStackTrace();
+				this.errorMessage = e.getMessage();
+				this.hadError = true;
+			}
+
+			this.hasRun = true;
+		} else {
+			this.getLogger().error("Script {} could not be run because it failed while compiling", this.getId().toString());
+		}
 	}
 
-	public CottonScriptContext withContext(CommandContext<ServerCommandSource> ctx) {
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public CottonScript withContext(CommandContext<ServerCommandSource> ctx) {
 		context = ctx;
 		source = new ServerSource(ctx.getSource());
 		return this;
 	}
 	
-	public CottonScriptContext withSource(ServerCommandSource src) {
+	public CottonScript withSource(ServerCommandSource src) {
 		context = null;
 		source = new ServerSource(src);
 		return this;
@@ -69,7 +92,7 @@ public class CottonScriptContext {
 	 * @param src The source to set to.
 	 * @return This object with the source, world, and position changed to match the new source.
 	 */
-	public CottonScriptContext runBy(ServerSource src) {
+	public CottonScript runBy(ServerSource src) {
 		source = src;
 		return this;
 	}
@@ -132,7 +155,7 @@ public class CottonScriptContext {
 
 	/**
 	 * Send a command feedback component to the script caller.
-	 * @see CottonScriptContext#sendFeedback(String)
+	 * @see CottonScript#sendFeedback(String)
 	 * @param feedback The message to send.
 	 * @param sendToStatusBar If false, this will appear in the caller's chat box.
 	 */
@@ -143,7 +166,7 @@ public class CottonScriptContext {
 	/**
 	 * Send a command feedback component to the script caller.
 	 * @overload
-	 * @see CottonScriptContext#sendFeedback(String, boolean)
+	 * @see CottonScript#sendFeedback(String, boolean)
 	 * @param feedback The message to send.
 	 */
 	public void sendFeedback(String feedback) {

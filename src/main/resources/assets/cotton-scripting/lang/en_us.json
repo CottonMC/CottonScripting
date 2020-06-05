@@ -2,7 +2,7 @@
   "engines.cotton-scripting.no_engine": "No engine found to run .%s scripts.",
   "engines.cotton-scripting.engine": "%s for %s",
   "engines.cotton-scripting.languages": "  Accepts extensions: %s",
-  "result.cotton-scripting.script_result": "Script run and returned %s",
+  "result.cotton-scripting.script_result": "Script run successfully",
   "result.cotton-scripting.tag_result": "%s scripts run successfully",
   "error.cotton-scripting.no_script": "No script was found for that Identifier!",
   "error.cotton-scripting.no_engine": "No engine found to execute the given script!",
