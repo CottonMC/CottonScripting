@@ -22,6 +22,9 @@ import net.minecraft.util.math.Vec3d;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * An object storing various context about how a script was called.
@@ -39,7 +42,15 @@ public class CottonScript extends SimpleCompilableScript {
 
 	private String errorMessage = "";
 
-	private static final Object[] globals = {Entity.class, Dimension.class, World.class, ScriptTools.class, WorldStorage.class};
+	// Define globals
+	private static Map<String, Object> globals = new HashMap<>();
+	static {
+		String[] keys =     {"WorldStorage", "ScriptTools"};
+		Object[] values =   {WorldStorage.class, ScriptTools.class};
+		for (int i = 0; i < keys.length; i++) {
+			globals.put(keys[i], values[i]);
+		}
+	}
 
 	public CottonScript(ScriptEngine engine, Identifier name, String contents) {
 		super(engine, name, contents);
@@ -48,11 +59,11 @@ public class CottonScript extends SimpleCompilableScript {
 	@Override
 	public void run() {
 		// Iterate through every global object
-		for (Object c : globals) {
-			// Define a new variable with the current Object's name and
-			getEngine().getContext().setAttribute(c.getClass().getName(), c, ScriptContext.ENGINE_SCOPE);
+		globals.forEach((k, v) -> {
+			// Define a new variable with the Object's key and value
+			getEngine().getContext().setAttribute(k, v, ScriptContext.ENGINE_SCOPE);
 			//TODO: After Parchment update, change method above to script.setVar
-		}
+		});
 
 		if (!this.hadCompileError) {
 			try {
