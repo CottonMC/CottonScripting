@@ -26,8 +26,5 @@
     "fabricloader": ">=0.5.2",
     "fabric": "*",
     "parchment": "1.x"
-  },
-  "custom": {
-    "modmenu:api": true
   }
 }
