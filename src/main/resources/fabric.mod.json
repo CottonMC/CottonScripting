@@ -28,6 +28,8 @@
     "parchment": "1.x"
   },
   "custom": {
-    "modmenu:api": true
+    "modmenu": {
+      "badges": [ "library" ]
+    }
   }
 }
